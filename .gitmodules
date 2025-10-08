@@ -1,0 +1,3 @@
+[submodule "quik"]
+	path = quik
+	url = https://github.com/steffanlloyd/quik.git
