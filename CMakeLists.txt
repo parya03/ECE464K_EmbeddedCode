@@ -53,9 +53,28 @@ target_include_directories(Robot-Arm PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
+# Manually added
+# FILE(GLOB_RECURSE EIGEN_INC ${PROJECT_SOURCE_DIR}/eigen/Eigen/)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/eigen)
+# aux_source_directory(${PROJECT_SOURCE_DIR}/eigen/Eigen/src/ EIGEN_SRCS)
+# add_library(Eigen3 ${EIGEN_INC})
+# set_target_properties(Eigen3 PROPERTIES LINKER_LANGUAGE CXX)
+# target_include_directories(${EIGEN_SRCS})
+
+# FILE(GLOB_RECURSE QUIK_INC ${PROJECT_SOURCE_DIR}/quik/*.hpp)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/quik)
+# include_directories(${PROJECT_SOURCE_DIR}/eigen)
+# include_directories(${PROJECT_SOURCE_DIR}/quik)
+add_library(quik ${PROJECT_SOURCE_DIR}/quik/src/geometry.cpp ${QUIK_INC})
+target_include_directories(quik PRIVATE ${PROJECT_SOURCE_DIR}/quik/include ${PROJECT_SOURCE_DIR}/eigen/)
+target_include_directories(Robot-Arm PRIVATE ${PROJECT_SOURCE_DIR}/quik/include ${PROJECT_SOURCE_DIR}/eigen/)
+# find_package(quik)
+# find_package(Eigen3)
+
 # Add any user requested libraries
 target_link_libraries(Robot-Arm 
-        
+        quik
+        # Eigen3
         )
 
 pico_add_extra_outputs(Robot-Arm)
