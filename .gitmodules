@@ -1,3 +1,6 @@
 [submodule "quik"]
 	path = quik
 	url = https://github.com/steffanlloyd/quik.git
+[submodule "eigen"]
+	path = eigen
+	url = https://gitlab.com/libeigen/eigen.git
