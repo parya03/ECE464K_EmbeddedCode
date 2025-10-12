@@ -1,5 +1,5 @@
 # Manually added
-build
+build/*
 !.vscode/*
 
 # Prerequisites

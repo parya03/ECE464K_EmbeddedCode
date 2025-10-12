@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.13)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(PICO_CXX_ENABLE_EXCEPTIONS 1)
+set(PICO_CXX_ENABLE_RTTI 1)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
@@ -41,8 +43,9 @@ pico_set_program_name(Robot-Arm "Robot-Arm")
 pico_set_program_version(Robot-Arm "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Robot-Arm 1)
+pico_enable_stdio_uart(Robot-Arm 0)
 pico_enable_stdio_usb(Robot-Arm 1)
+target_compile_definitions(Robot-Arm PRIVATE PICO_ENTER_USB_BOOT_ON_EXIT=1)
 
 # Add the standard library to the build
 target_link_libraries(Robot-Arm
@@ -65,9 +68,9 @@ target_include_directories(Robot-Arm PRIVATE
 # add_subdirectory(${PROJECT_SOURCE_DIR}/quik)
 # include_directories(${PROJECT_SOURCE_DIR}/eigen)
 # include_directories(${PROJECT_SOURCE_DIR}/quik)
-add_library(quik ${PROJECT_SOURCE_DIR}/quik/src/geometry.cpp ${QUIK_INC})
-target_include_directories(quik PRIVATE ${PROJECT_SOURCE_DIR}/quik/include ${PROJECT_SOURCE_DIR}/eigen/)
-target_include_directories(Robot-Arm PRIVATE ${PROJECT_SOURCE_DIR}/quik/include ${PROJECT_SOURCE_DIR}/eigen/)
+add_library(quik ${PROJECT_SOURCE_DIR}/quik-embedded/src/geometry.cpp ${QUIK_INC})
+target_include_directories(quik PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/)
+target_include_directories(Robot-Arm PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/)
 # find_package(quik)
 # find_package(Eigen3)
 
@@ -78,4 +81,3 @@ target_link_libraries(Robot-Arm
         )
 
 pico_add_extra_outputs(Robot-Arm)
-
