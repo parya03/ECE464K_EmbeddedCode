@@ -19,59 +19,38 @@ class PWMController {
     double normalized_value = 0.0;
     double pwm_value = 0.0;
 
-    PWMController() {
+    constexpr slice_num;
+    constexpr channel;
+
+    PWMController(constexpr pin) {
 
         // Initialize PWM hardware
         stdio_init_all();
 
         // Set up PWM on a specific GPIO pin
-        gpio_set_function(2, GPIO_FUNC_PWM);
-        gpio_set_function(3, GPIO_FUNC_PWM);
-        gpio_set_function(4, GPIO_FUNC_PWM);
+        gpio_set_function(pin, GPIO_FUNC_PWM);
 
         // initialize GPIO pins for PWM output
-        gpio_init(2);
-        gpio_set_pulls(2, false, true);
-        gpio_init(3);
-        gpio_set_pulls(3, false, true);
-        gpio_init(4);
-        gpio_set_pulls(4, false, true);
+        gpio_init(pin);
+        gpio_set_pulls(pin, false, true);
 
         // Find out which PWM slice is connected to GPIOs
-        uint slice_num_2 = pwm_gpio_to_slice_num(2);
-        uint32_t channel_2 = pwm_gpio_to_channel(2);
-        uint slice_num_3 = pwm_gpio_to_slice_num(3);
-        uint32_t channel_3 = pwm_gpio_to_channel(3);
-        uint slice_num_4 = pwm_gpio_to_slice_num(4);
-        uint32_t channel_4 = pwm_gpio_to_channel(4);
+        slice_num = pwm_gpio_to_slice_num(pin);
+        channel = pwm_gpio_to_channel(pin);
 
          // 1MHz PWM clock from divider
-        pwm_set_clkdiv_int_frac(slice_num_2, SYS_CLK_HZ / 1000000, 0);
-        pwm_set_clkdiv_int_frac(slice_num_3, SYS_CLK_HZ / 1000000, 0);
-        pwm_set_clkdiv_int_frac(slice_num_4, SYS_CLK_HZ / 1000000, 0);
+        pwm_set_clkdiv_int_frac(slice_num, SYS_CLK_HZ / 1000000, 0);
 
         // Set period of 50 ms
-        pwm_set_wrap(slice_num_2, 50000);
+        pwm_set_wrap(slice_num, 50000);
         // Center servo
-        pwm_set_chan_level(slice_num_2, channel_2, 1500);
-
-        // Set period of 50 ms
-        pwm_set_wrap(slice_num_3, 50000);
-        // Center servo
-        pwm_set_chan_level(slice_num_3, channel_3, 1500);
-
-        // Set period of 50 ms
-        pwm_set_wrap(slice_num_4, 50000);
-        // Center servo
-        pwm_set_chan_level(slice_num_4, channel_4, 1500);
+        pwm_set_chan_level(slice_num, channel, 1500);
 
     }
 
     void startPWMControllers() {
         // Start the PWM
-        pwm_set_enabled(slice_num_2, true);
-        pwm_set_enabled(slice_num_3, true);
-        pwm_set_enabled(slice_num_4, true);
+        pwm_set_enabled(slice_num, true);
     }
 
     int computeNormalizedValue(float value) { // in radians from 
@@ -80,7 +59,7 @@ class PWMController {
         return pwm_value;
     }
 
-    void setPWMValue(float value, uint slice_num, uint32_t channel) {
+    void setPWMValue(float value) {
         int pwm_value = computeNormalizedValue(value);
         pwm_set_chan_level(slice_num, channel, pwm_value);
     }

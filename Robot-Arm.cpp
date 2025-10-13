@@ -63,10 +63,44 @@ const quik::IKSolver<3> IKS(
     1 // Max angular error step
 );
 
-int main()
-{
+int main() {
     stdio_init_all();
-	
+
+    // Tell GPIO 0 and 1 they are allocated to the PWM
+    gpio_set_function(0, GPIO_FUNC_PWM);
+    // gpio_set_function(1, GPIO_FUNC_PWM);
+
+    gpio_init(2);
+    gpio_set_pulls(2, false, true);
+    gpio_set_dir(2, GPIO_IN);
+
+    gpio_init(3);
+    gpio_set_pulls(3, false, true);
+    gpio_set_dir(3, GPIO_IN);
+
+    gpio_init(4);
+    gpio_set_pulls(4, false, true);
+    gpio_set_dir(4, GPIO_IN);
+
+    // Find out which PWM slice is connected to GPIO 0 (it's slice 0)
+    uint slice_num = pwm_gpio_to_slice_num(0);
+    uint32_t channel = pwm_gpio_to_channel(0);
+
+    // 1MHz PWM clock from divider
+    pwm_set_clkdiv_int_frac(slice_num, SYS_CLK_HZ / 1000000, 0);
+
+    // Set period of 50 ms
+    pwm_set_wrap(slice_num, 50000);
+    // Center servo
+    pwm_set_chan_level(slice_num, channel, 1500);
+
+    // Set initial B output high for three cycles before dropping
+    // pwm_set_chan_level(slice_num, PWM_CHAN_B, 3);
+    
+    // Set the PWM running
+    pwm_set_enabled(slice_num, true);
+    /// \end::setup_pwm[]
+
     while(1) {
         // Initilize variables
         int N = 1; // Number of poses to generate
@@ -88,7 +122,7 @@ int main()
 
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
         Q0 = Q.array() + 0.1;
-            
+        
         // Do forward kinematics of each Q sample and store in the "tall" matrix
         // of transforms, Tn
         // for (int i = 0; i < N; i++){
@@ -183,3 +217,4 @@ int main()
 	
 	return 0;
 }
+
