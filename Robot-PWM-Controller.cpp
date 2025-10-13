@@ -80,7 +80,8 @@ class PWMController {
         return pwm_value;
     }
 
-    void setPWMValue(int pwm_value, uint slice_num, uint32_t channel) {
+    void setPWMValue(float value, uint slice_num, uint32_t channel) {
+        int pwm_value = computeNormalizedValue(value);
         pwm_set_chan_level(slice_num, channel, pwm_value);
     }
 
