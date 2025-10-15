@@ -53,13 +53,13 @@ auto R = std::make_shared<quik::Robot<3>>(
 // Define the IK options
 const quik::IKSolver<3> IKS(
     R, // The robot object (pointer)
-    200, // max number of iterations
+    2000, // max number of iterations
     quik::ALGORITHM_QUIK, // algorithm (ALGORITHM_QUIK, ALGORITHM_NR or ALGORITHM_BFGS)
     1e-12, // Exit tolerance
     1e-14, // Minimum step tolerance
     0.05, // iteration-to-iteration improvement tolerance (0.05 = 5% relative improvement)
-    20, // max consequitive gradient fails
-    80, // Max gradient fails
+    200, // max consequitive gradient fails
+    800, // Max gradient fails
     1e-10, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
     0.34, // Max linear error step
     1 // Max angular error step
@@ -67,37 +67,33 @@ const quik::IKSolver<3> IKS(
 
 bool run_state = true;
 
-// // Used to read input data
-// void uart_rx_interrupt() {
-//     while (uart_is_readable(uart0)) {
-//         uint8_t ch = uart_getc(uart0);
+// Used to read input data
+void uart_rx_interrupt() {
+    while (uart_is_readable(uart0)) {
+        uint8_t ch = uart_getc(uart0);
 
-//         if(ch == '0') {
-//             run_state = false;
-//         }
-//         if(ch == '1') {
-//             run_state = true;
-//         }
-//         // // Can we send it back?
-//         // if (uart_is_writable(uart0)) {
-//         //     // Change it slightly first!
-//         //     ch++;
-//         //     uart_putc(uart0, ch);
-//         // }
-//         // chars_rxed++;
-//     }
-// }
+        if(ch == '0') {
+            run_state = false;
+        }
+        if(ch == '1') {
+            run_state = true;
+        }
+        // Can we send it back?
+        if (uart_is_writable(uart0)) {
+            // Change it slightly first!
+            ch++;
+            uart_putc(uart0, ch);
+        }
+        // chars_rxed++;
+    }
+}
 
 int main() {
     stdio_init_all();
 
-    // Tell GPIO 0 and 1 they are allocated to the PWM
-    gpio_set_function(0, GPIO_FUNC_PWM);
-    // gpio_set_function(1, GPIO_FUNC_PWM);
-
-    // gpio_init(2);
-    // gpio_set_pulls(2, false, true);
-    // gpio_set_dir(2, GPIO_IN);
+    // gpio_init(0);
+    // gpio_set_pulls(0, false, true);
+    // gpio_set_dir(0, GPIO_IN);
 
     // gpio_init(3);
     // gpio_set_pulls(3, false, true);
@@ -126,9 +122,9 @@ int main() {
     // pwm_set_enabled(slice_num, true);
     /// \end::setup_pwm[]
 
-    Servo base(2, 45);
-    Servo arm1(3);
-    Servo arm2(4);
+    Servo base(2, 0);
+    Servo arm1(3, 0);
+    Servo arm2(4, 0);
 
     base.startPWMControllers();
     arm1.startPWMControllers();
@@ -141,7 +137,15 @@ int main() {
 
     // Now enable the UART to send interrupts - RX only
     // uart_set_irq_enables(uart0, true, false);
-    
+    // while(1) {
+    //     base.zero();
+    //     arm1.zero();
+    //     arm2.zero();
+    // }
+
+    Matrix<float,3,Dynamic> Q_prev;
+    Q_prev.setRandom(R->dof, 1);
+
     while(1) {
         // Initilize variables
         int N = 1; // Number of poses to generate
@@ -159,10 +163,11 @@ int main() {
                                                     // This is just a convenient way of sending in an array of transforms.
         
         // Generate some random joint configurations for the robot
-        Q.setRandom(DOF, N);
+        // Q.setRandom(DOF, N);
 
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
-        Q0 = Q.array() + 0.1;
+        // Q0 = Q.array() + 0.1;
+        Q0 = Q_prev;
         
         // Do forward kinematics of each Q sample and store in the "tall" matrix
         // of transforms, Tn
@@ -171,9 +176,9 @@ int main() {
         //     Tn.middleRows<4>(i*4) = T;
         // }
 
-        Tn << 0, 0, 0, 5, \
-                0, 0, 0, 5, \
-                0, 0, 0, 1, \
+        Tn << 0, 0, 0, 0, \
+                0, 0, 0, 0, \
+                0, 0, 0, 100, \
                 0, 0, 0, 1;
 
         // R->print();
@@ -212,30 +217,30 @@ int main() {
         // }
         // printf("\n");
 
-        printf("The final joint angles are:\n");
-        for (int i = 0; i < Q_star.rows(); i++) {
-            for (int j = 0; j < Q_star.cols(); j++) {
-                printf("%f = %f Pi", Q_star(i, j), Q_star(i, j)/float(M_PI));
-            }
-            printf("\n");
-        }
-        printf("\n");
-
-        // printf("Final normed error is:\n");
-        // for (int j = 0; j < e_star.cols(); j++) {
-        //     float normed_error = 0.0;
-        //     for (int i = 0; i < e_star.rows(); i++) {
-        //         normed_error += e_star(i, j) * e_star(i, j);
+        // printf("The final joint angles are:\n");
+        // for (int i = 0; i < Q_star.rows(); i++) {
+        //     for (int j = 0; j < Q_star.cols(); j++) {
+        //         printf("Q_star[%d, %d]: %f = %f Pi", i, j, Q_star(i, j), Q_star(i, j)/float(M_PI));
         //     }
-        //     printf("%f ", sqrt(normed_error));
-        // }
-        // printf("\n\n");
-
-        // printf("Break reason is:\n");
-        // for (const auto& reason : breakReason) {
-        //     printf("%d ", reason);
+        //     printf("\n");
         // }
         // printf("\n");
+
+        printf("Final normed error is:\n");
+        for (int j = 0; j < e_star.cols(); j++) {
+            float normed_error = 0.0;
+            for (int i = 0; i < e_star.rows(); i++) {
+                normed_error += e_star(i, j) * e_star(i, j);
+            }
+            printf("%f ", sqrt(normed_error));
+        }
+        printf("\n\n");
+
+        printf("Break reason is:\n");
+        for (const auto& reason : breakReason) {
+            printf("%d ", reason);
+        }
+        printf("\n");
 
         // printf("Number of iterations:\n");
         // for (const auto& iter_i : iter) {
@@ -259,6 +264,10 @@ int main() {
         base.print();
         arm1.print();
         arm2.print();
+
+        Q_prev = Q_star;
+
+        sleep_ms(1000);
     }
 	
 	return 0;

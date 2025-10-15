@@ -14,7 +14,7 @@
 #define MAX_PWM 2500
 #define MIN_PWM 500
 
-#define US_PER_DEGREE (1000/180) // uS pulse per degree of movement
+#define US_PER_DEGREE (1000/90) // uS pulse per degree of movement
 #define US_PER_RAD (1000/EIGEN_PI)
 
 /**
@@ -40,19 +40,18 @@ class Servo {
         int channel;
     
     public:
-        Servo(int pin) {
-            Servo(pin, 0);
-        }
+        Servo(int pin) : Servo(pin, 0) {}
 
         Servo(int pin, float angle_offset_degrees) {
             this->pin = pin;
 
-            // Set up PWM on a specific GPIO pin
-            gpio_set_function(pin, GPIO_FUNC_PWM);
-
             // initialize GPIO pins for PWM output
             gpio_init(pin);
             gpio_set_pulls(pin, false, true);
+            gpio_set_dir(pin, GPIO_OUT);
+
+            // Set up PWM on a specific GPIO pin
+            gpio_set_function(pin, GPIO_FUNC_PWM);
             
             zero_angle_offset_degrees = angle_offset_degrees;
             zero_pw = 1500 + (angle_offset_degrees * US_PER_DEGREE);
@@ -104,7 +103,7 @@ class Servo {
         }
 
         void zero() {
-            setAngleDegrees(0);
+            setAngleDegrees(0.0f);
         }
 
         void setAngleRad(float angle_rad) {
@@ -117,12 +116,14 @@ class Servo {
         void setAngleDegrees(float angle) {
             rel_angle_deg = angle;
 
+            rel_angle_deg = fmodf(rel_angle_deg, 360.0f);
+
             float abs_angle = angle + zero_angle_offset_degrees;
-            if(abs_angle < -180.0f) {
-                abs_angle = -180.0f;
+            if(abs_angle < -90.0f) {
+                abs_angle = -90.0f;
             }
-            if(abs_angle > 180.0f) {
-                abs_angle = 180.0f;
+            if(abs_angle > 90.0f) {
+                abs_angle = 90.0f;
             }
 
             curr_pwm_pw = 1500 + (abs_angle * US_PER_DEGREE);
