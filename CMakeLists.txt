@@ -37,7 +37,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Robot-Arm Robot-Arm.cpp )
+add_executable(Robot-Arm Robot-Arm.cpp)
 
 pico_set_program_name(Robot-Arm "Robot-Arm")
 pico_set_program_version(Robot-Arm "0.1")
@@ -49,7 +49,7 @@ target_compile_definitions(Robot-Arm PRIVATE PICO_ENTER_USB_BOOT_ON_EXIT=1)
 
 # Add the standard library to the build
 target_link_libraries(Robot-Arm
-        pico_stdlib)
+        pico_stdlib hardware_pwm)
 
 # Add the standard include files to the build
 target_include_directories(Robot-Arm PRIVATE

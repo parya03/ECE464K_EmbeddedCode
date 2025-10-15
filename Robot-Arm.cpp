@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/time.h"
 #include "pico/stdlib.h"
+#include "hardware/pwm.h"
 #include <iostream>
 // #include <chrono>
 #include "Eigen/Dense"
@@ -8,6 +9,7 @@
 #include "quik/geometry.hpp"
 #include "quik/Robot.hpp"
 #include "quik/IKSolver.hpp"
+#include "Servo.hpp"
 
 // int main()
 // {
@@ -63,6 +65,29 @@ const quik::IKSolver<3> IKS(
     1 // Max angular error step
 );
 
+bool run_state = true;
+
+// // Used to read input data
+// void uart_rx_interrupt() {
+//     while (uart_is_readable(uart0)) {
+//         uint8_t ch = uart_getc(uart0);
+
+//         if(ch == '0') {
+//             run_state = false;
+//         }
+//         if(ch == '1') {
+//             run_state = true;
+//         }
+//         // // Can we send it back?
+//         // if (uart_is_writable(uart0)) {
+//         //     // Change it slightly first!
+//         //     ch++;
+//         //     uart_putc(uart0, ch);
+//         // }
+//         // chars_rxed++;
+//     }
+// }
+
 int main() {
     stdio_init_all();
 
@@ -70,37 +95,53 @@ int main() {
     gpio_set_function(0, GPIO_FUNC_PWM);
     // gpio_set_function(1, GPIO_FUNC_PWM);
 
-    gpio_init(2);
-    gpio_set_pulls(2, false, true);
-    gpio_set_dir(2, GPIO_IN);
+    // gpio_init(2);
+    // gpio_set_pulls(2, false, true);
+    // gpio_set_dir(2, GPIO_IN);
 
-    gpio_init(3);
-    gpio_set_pulls(3, false, true);
-    gpio_set_dir(3, GPIO_IN);
+    // gpio_init(3);
+    // gpio_set_pulls(3, false, true);
+    // gpio_set_dir(3, GPIO_IN);
 
-    gpio_init(4);
-    gpio_set_pulls(4, false, true);
-    gpio_set_dir(4, GPIO_IN);
+    // gpio_init(4);
+    // gpio_set_pulls(4, false, true);
+    // gpio_set_dir(4, GPIO_IN);
 
-    // Find out which PWM slice is connected to GPIO 0 (it's slice 0)
-    uint slice_num = pwm_gpio_to_slice_num(0);
-    uint32_t channel = pwm_gpio_to_channel(0);
+    // // Find out which PWM slice is connected to GPIO 0 (it's slice 0)
+    // uint slice_num = pwm_gpio_to_slice_num(0);
+    // uint32_t channel = pwm_gpio_to_channel(0);
 
-    // 1MHz PWM clock from divider
-    pwm_set_clkdiv_int_frac(slice_num, SYS_CLK_HZ / 1000000, 0);
+    // // 1MHz PWM clock from divider
+    // pwm_set_clkdiv_int_frac(slice_num, SYS_CLK_HZ / 1000000, 0);
 
-    // Set period of 50 ms
-    pwm_set_wrap(slice_num, 50000);
-    // Center servo
-    pwm_set_chan_level(slice_num, channel, 1500);
+    // // Set period of 50 ms
+    // pwm_set_wrap(slice_num, 50000);
+    // // Center servo
+    // pwm_set_chan_level(slice_num, channel, 1500);
 
-    // Set initial B output high for three cycles before dropping
-    // pwm_set_chan_level(slice_num, PWM_CHAN_B, 3);
+    // // Set initial B output high for three cycles before dropping
+    // // pwm_set_chan_level(slice_num, PWM_CHAN_B, 3);
     
-    // Set the PWM running
-    pwm_set_enabled(slice_num, true);
+    // // Set the PWM running
+    // pwm_set_enabled(slice_num, true);
     /// \end::setup_pwm[]
 
+    Servo base(2, 45);
+    Servo arm1(3);
+    Servo arm2(4);
+
+    base.startPWMControllers();
+    arm1.startPWMControllers();
+    arm2.startPWMControllers();
+
+    // Set up a UART RX interrupt
+    // And set up and enable the interrupt handlers
+    // irq_set_exclusive_handler(UART0_IRQ, uart_rx_interrupt);
+    // irq_set_enabled(UART0_IRQ, true);
+
+    // Now enable the UART to send interrupts - RX only
+    // uart_set_irq_enables(uart0, true, false);
+    
     while(1) {
         // Initilize variables
         int N = 1; // Number of poses to generate
@@ -153,23 +194,23 @@ int main() {
         auto endTime = to_ms_since_boot(get_absolute_time());
 
         // Print out results
-        printf("Joint angles (start):\n");
-        for (int i = 0; i < Q0.rows(); i++) {
-            for (int j = 0; j < Q0.cols(); j++) {
-                printf("%f ", Q0(i, j));
-            }
-            printf("\n");
-        }
-        printf("\n");
+        // printf("Joint angles (start):\n");
+        // for (int i = 0; i < Q0.rows(); i++) {
+        //     for (int j = 0; j < Q0.cols(); j++) {
+        //         printf("%f ", Q0(i, j));
+        //     }
+        //     printf("\n");
+        // }
+        // printf("\n");
 
-        printf("Joint angles (true):\n");
-        for (int i = 0; i < Q.rows(); i++) {
-            for (int j = 0; j < Q.cols(); j++) {
-                printf("%f ", Q(i, j));
-            }
-            printf("\n");
-        }
-        printf("\n");
+        // printf("Joint angles (true):\n");
+        // for (int i = 0; i < Q.rows(); i++) {
+        //     for (int j = 0; j < Q.cols(); j++) {
+        //         printf("%f ", Q(i, j));
+        //     }
+        //     printf("\n");
+        // }
+        // printf("\n");
 
         printf("The final joint angles are:\n");
         for (int i = 0; i < Q_star.rows(); i++) {
@@ -180,27 +221,27 @@ int main() {
         }
         printf("\n");
 
-        printf("Final normed error is:\n");
-        for (int j = 0; j < e_star.cols(); j++) {
-            float normed_error = 0.0;
-            for (int i = 0; i < e_star.rows(); i++) {
-                normed_error += e_star(i, j) * e_star(i, j);
-            }
-            printf("%f ", sqrt(normed_error));
-        }
-        printf("\n\n");
+        // printf("Final normed error is:\n");
+        // for (int j = 0; j < e_star.cols(); j++) {
+        //     float normed_error = 0.0;
+        //     for (int i = 0; i < e_star.rows(); i++) {
+        //         normed_error += e_star(i, j) * e_star(i, j);
+        //     }
+        //     printf("%f ", sqrt(normed_error));
+        // }
+        // printf("\n\n");
 
-        printf("Break reason is:\n");
-        for (const auto& reason : breakReason) {
-            printf("%d ", reason);
-        }
-        printf("\n");
+        // printf("Break reason is:\n");
+        // for (const auto& reason : breakReason) {
+        //     printf("%d ", reason);
+        // }
+        // printf("\n");
 
-        printf("Number of iterations:\n");
-        for (const auto& iter_i : iter) {
-            printf("%d ", iter_i);
-        }
-        printf("\n");
+        // printf("Number of iterations:\n");
+        // for (const auto& iter_i : iter) {
+        //     printf("%d ", iter_i);
+        // }
+        // printf("\n");
         
         printf("Commanded transform (Tn):\n");
         for (int i = 0; i < Tn.rows(); i++) {
@@ -209,10 +250,15 @@ int main() {
             }
             printf("\n");
         }
-        printf("Program finished!\n");
+        printf("IK finished!\n");
         printf("Total time taken: %d ms\n", endTime - startTime);
 
-        sleep_ms(500);
+        base.setAngleRad(Q_star(0, 0));
+        arm1.setAngleRad(Q_star(1, 0));
+        arm2.setAngleRad(Q_star(2, 0));
+        base.print();
+        arm1.print();
+        arm2.print();
     }
 	
 	return 0;
