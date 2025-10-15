@@ -1,6 +1,7 @@
 # Manually added
 build/*
-!.vscode/*
+.vscode/*
+.cache/*
 
 # Prerequisites
 *.d
