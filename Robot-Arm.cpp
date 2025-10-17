@@ -166,9 +166,10 @@ int main() {
         // Q.setRandom(DOF, N);
 
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
-        // Q0 = Q.array() + 0.1;
-        Q0 = Q_prev;
-        
+        Q0 = Q_prev.array() + 0.1;
+        // Q0 = Q_prev.array() + 0.01;
+        // Q0 = Q_prev;
+
         // Do forward kinematics of each Q sample and store in the "tall" matrix
         // of transforms, Tn
         // for (int i = 0; i < N; i++){
