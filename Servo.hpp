@@ -114,19 +114,37 @@ class Servo {
 
         // Total Angle = -180 - 180 taking offset into account
         void setAngleDegrees(float angle) {
-            rel_angle_deg = angle;
+            rel_angle_deg = angle + zero_angle_offset_degrees;
+
+            printf("Angle requested: %f deg, after adding offset: %f deg\n", angle, rel_angle_deg);
 
             rel_angle_deg = fmodf(rel_angle_deg, 360.0f);
 
-            float abs_angle = angle + zero_angle_offset_degrees;
-            if(abs_angle < -90.0f) {
-                abs_angle = -90.0f;
-            }
-            if(abs_angle > 90.0f) {
-                abs_angle = 90.0f;
-            }
+            printf("Angle between -360 to 360: %f deg\n", rel_angle_deg);
 
-            curr_pwm_pw = 1500 + (abs_angle * US_PER_DEGREE);
+            if(rel_angle_deg >= 270.0f && rel_angle_deg <= 360.0f) {
+                rel_angle_deg -= 360.0f;
+            }
+            else if(rel_angle_deg <= -270.0f && rel_angle_deg >= -360.0f){
+                rel_angle_deg += 360.0f;
+            }
+            // if(rel_angle_deg < 0) {
+            //     rel_angle_deg += 360.0f;
+            // }
+            // rel_angle_deg -= 180.0f;
+
+            // printf("Angle in range -180 to 180: %f deg\n", rel_angle_deg);
+
+            // if(rel_angle_deg < -90.0f) {
+            //     rel_angle_deg = -90.0f; // range wrap between -90 to 90
+            // }
+            // if(rel_angle_deg > 90.0f) {
+            //     rel_angle_deg = 90.0f; // range wrap between -90 to 90
+            // }
+
+            printf("Angle in range -90 to 90: %f deg\n", rel_angle_deg);
+
+            curr_pwm_pw = 1500 + (rel_angle_deg * US_PER_DEGREE);
             pwm_set_chan_level(slice_num, channel, curr_pwm_pw);
         }
 };

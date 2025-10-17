@@ -182,8 +182,8 @@ int main() {
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
         Tn << 0, 0, 0, 0, \
-                0, 0, 0, 25.456, \
-                0, 0, 0, 25.456, \
+                0, 0, 0, 0, \ 
+                0, 0, 0, 0, \
                 0, 0, 0, 1;
 
         // R->print();
