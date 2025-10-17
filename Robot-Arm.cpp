@@ -54,10 +54,10 @@ auto R = std::make_shared<quik::Robot<3>>(
 const quik::IKSolver<3> IKS(
     R, // The robot object (pointer)
     2000, // max number of iterations
-    quik::ALGORITHM_QUIK, // algorithm (ALGORITHM_QUIK, ALGORITHM_NR or ALGORITHM_BFGS)
+    quik::ALGORITHM_NR, // quik::ALGORITHM_QUIK, // algorithm (ALGORITHM_QUIK, ALGORITHM_NR or ALGORITHM_BFGS)
     1e-12, // Exit tolerance
     1e-14, // Minimum step tolerance
-    0.05, // iteration-to-iteration improvement tolerance (0.05 = 5% relative improvement)
+    0.005, // iteration-to-iteration improvement tolerance (0.05 = 5% relative improvement)
     200, // max consequitive gradient fails
     800, // Max gradient fails
     1e-10, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
@@ -87,6 +87,9 @@ void uart_rx_interrupt() {
         // chars_rxed++;
     }
 }
+
+float min_sqrt_normed_err = (float)__FLT_MAX__; // Big float init because err is (hopefully) less
+Vector3f min_err_joint_angles;
 
 int main() {
     stdio_init_all();
@@ -159,15 +162,15 @@ int main() {
         Matrix4f                    T,		        // True forward kinematics transform
                                     T_star;	        // Forward kinematics at solver solution
         
-        Matrix<float,4,4>    Tn(4,4); 	    // 4N * 4 matrix of vertically stacked transforms to be solved.
+        Matrix4f    Tn(4,4); 	    // 4N * 4 matrix of vertically stacked transforms to be solved.
                                                     // This is just a convenient way of sending in an array of transforms.
         
         // Generate some random joint configurations for the robot
         // Q.setRandom(DOF, N);
 
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
-        Q0 = Q_prev.array() + 0.1;
-        // Q0 = Q_prev.array() + 0.01;
+        // Q0 = Q_prev.array();
+        Q0 = Q_prev.array() + 0.01;
         // Q0 = Q_prev;
 
         // Do forward kinematics of each Q sample and store in the "tall" matrix
@@ -177,9 +180,10 @@ int main() {
         //     Tn.middleRows<4>(i*4) = T;
         // }
 
+        // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
         Tn << 0, 0, 0, 0, \
-                0, 0, 0, 0, \
-                0, 0, 0, 100, \
+                0, 0, 0, 25.456, \
+                0, 0, 0, 25.456, \
                 0, 0, 0, 1;
 
         // R->print();
@@ -227,16 +231,6 @@ int main() {
         // }
         // printf("\n");
 
-        printf("Final normed error is:\n");
-        for (int j = 0; j < e_star.cols(); j++) {
-            float normed_error = 0.0;
-            for (int i = 0; i < e_star.rows(); i++) {
-                normed_error += e_star(i, j) * e_star(i, j);
-            }
-            printf("%f ", sqrt(normed_error));
-        }
-        printf("\n\n");
-
         printf("Break reason is:\n");
         for (const auto& reason : breakReason) {
             printf("%d ", reason);
@@ -249,6 +243,17 @@ int main() {
         // }
         // printf("\n");
         
+        printf("IK finished!\n");
+
+        VectorXf err_vec = e_star.col(0); // Only one column because only one pose
+        float normed_error = 0.0;
+        for (auto i : err_vec) {
+            normed_error += i * i; // Squared error
+        }
+        printf("Final normed error for this run is: %f, min recorded is %f", sqrtf(normed_error), min_sqrt_normed_err);
+
+        printf("\n");
+
         printf("Commanded transform (Tn):\n");
         for (int i = 0; i < Tn.rows(); i++) {
             for (int j = 0; j < Tn.cols(); j++) {
@@ -256,12 +261,46 @@ int main() {
             }
             printf("\n");
         }
-        printf("IK finished!\n");
+
+        Matrix4f T_fk;
+        R->FKn(Q_star.col(0), T_fk);
+        // Vector3f zero_vec = Vector3f::Zero();
+        // R->FKn(zero_vec, T_fk);
+        printf("FK transformation matrix of computed angles (T_fk):\n");
+        for (int i = 0; i < T_fk.rows(); i++) {
+            for (int j = 0; j < T_fk.cols(); j++) {
+                printf("%f ", T_fk(i, j));
+            }
+            printf("\n");
+        }
+
+        printf("Best joint angles so far:\n");
+        for(auto i : min_err_joint_angles) {
+            printf("%f \n", i);
+        }
+        printf("\n");
+
+        R->FKn(min_err_joint_angles, T_fk);
+        printf("FK transformation matrix of best angles (T_fk):\n");
+        for (int i = 0; i < T_fk.rows(); i++) {
+            for (int j = 0; j < T_fk.cols(); j++) {
+                printf("%f ", T_fk(i, j));
+            }
+            printf("\n");
+        }
+
         printf("Total time taken: %d ms\n", endTime - startTime);
 
-        base.setAngleRad(Q_star(0, 0));
-        arm1.setAngleRad(Q_star(1, 0));
-        arm2.setAngleRad(Q_star(2, 0));
+        if(sqrtf(normed_error) < min_sqrt_normed_err) {
+            min_sqrt_normed_err = sqrtf(normed_error);
+            min_err_joint_angles = Q_star.col(0);
+
+            printf("Applying this transform because the error is least so far\n");
+            base.setAngleRad(Q_star(0, 0));
+            arm1.setAngleRad(Q_star(1, 0));
+            arm2.setAngleRad(Q_star(2, 0));
+        }
+
         base.print();
         arm1.print();
         arm2.print();
