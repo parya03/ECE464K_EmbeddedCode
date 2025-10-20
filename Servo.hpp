@@ -128,6 +128,24 @@ class Servo {
             else if(rel_angle_deg <= -270.0f && rel_angle_deg >= -360.0f){
                 rel_angle_deg += 360.0f;
             }
+            else {
+                // Not a valid angle -> cap it
+                if(rel_angle_deg > 180 && rel_angle_deg < 270) {
+                    rel_angle_deg = -90;
+                }
+
+                if(rel_angle_deg > 90 && rel_angle_deg <= 180) {
+                    rel_angle_deg = 90;
+                }
+
+                if(rel_angle_deg >= -180 && rel_angle_deg < -90) {
+                    rel_angle_deg = -90;
+                }
+
+                if(rel_angle_deg >= -270 && rel_angle_deg < -180) {
+                    rel_angle_deg = 90;
+                }
+            }
             // if(rel_angle_deg < 0) {
             //     rel_angle_deg += 360.0f;
             // }

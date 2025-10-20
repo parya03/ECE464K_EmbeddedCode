@@ -181,7 +181,7 @@ int main() {
         // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        Tn << 0, 0, 0, 0, \
+        Tn << 0, 0, 0, 36, \
                 0, 0, 0, 0, \ 
                 0, 0, 0, 0, \
                 0, 0, 0, 1;
@@ -295,11 +295,13 @@ int main() {
             min_sqrt_normed_err = sqrtf(normed_error);
             min_err_joint_angles = Q_star.col(0);
 
-            printf("Applying this transform because the error is least so far\n");
-            base.setAngleRad(Q_star(0, 0));
-            arm1.setAngleRad(Q_star(1, 0));
-            arm2.setAngleRad(Q_star(2, 0));
+            
         }
+
+        // printf("Applying this transform because the error is least so far\n");
+        base.setAngleRad(min_err_joint_angles(0, 0));
+        arm1.setAngleRad(min_err_joint_angles(1, 0));
+        arm2.setAngleRad(min_err_joint_angles(2, 0));
 
         base.print();
         arm1.print();
