@@ -61,7 +61,7 @@ const quik::IKSolver<3> IKS(
     200, // max consequitive gradient fails
     800, // Max gradient fails
     1e-10, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
-    0.34, // Max linear error step
+    0.07, // 0.34, // Max linear error step
     1 // Max angular error step
 );
 
@@ -181,9 +181,9 @@ int main() {
         // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        Tn << 0, 0, 0, 36, \
-                0, 0, 0, 0, \ 
-                0, 0, 0, 0, \
+        Tn << 0, 0, 0, 0, \
+                0, 0, 0, 25.456, \ 
+                0, 0, 0, 25.456, \
                 0, 0, 0, 1;
 
         // R->print();
@@ -246,11 +246,13 @@ int main() {
         printf("IK finished!\n");
 
         VectorXf err_vec = e_star.col(0); // Only one column because only one pose
+        // TODO: Define error as purely based on translation position rather than rotation
         float normed_error = 0.0;
-        for (auto i : err_vec) {
-            normed_error += i * i; // Squared error
-        }
-        printf("Final normed error for this run is: %f, min recorded is %f", sqrtf(normed_error), min_sqrt_normed_err);
+        // for (auto i : err_vec) {
+        //     normed_error += i * i; // Squared error
+        // }
+        // normed_error = (Tn(0, 3) * Q_star(0, 0))
+        printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
 
         printf("\n");
 
