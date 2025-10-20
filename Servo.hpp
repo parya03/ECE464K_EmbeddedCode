@@ -38,12 +38,17 @@ class Servo {
         int pin;
         int slice_num;
         int channel;
+        bool inverted;
     
     public:
         Servo(int pin) : Servo(pin, 0) {}
 
-        Servo(int pin, float angle_offset_degrees) {
+        Servo(int pin, float angle_offset_degrees) : Servo(pin, 0, 0) {}
+        
+        Servo(int pin, float angle_offset_degrees, bool invert) {
             this->pin = pin;
+            
+            inverted = invert;
 
             // initialize GPIO pins for PWM output
             gpio_init(pin);
@@ -162,7 +167,7 @@ class Servo {
 
             printf("Angle in range -90 to 90: %f deg\n", rel_angle_deg);
 
-            curr_pwm_pw = 1500 + (rel_angle_deg * US_PER_DEGREE);
+            curr_pwm_pw = inverted ? 1500 + (rel_angle_deg * US_PER_DEGREE) : 1500 - (rel_angle_deg * US_PER_DEGREE);
             pwm_set_chan_level(slice_num, channel, curr_pwm_pw);
         }
 };

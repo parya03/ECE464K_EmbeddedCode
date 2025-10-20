@@ -127,7 +127,7 @@ int main() {
 
     Servo base(2, 0);
     Servo arm1(3, 0);
-    Servo arm2(4, 0);
+    Servo arm2(4, 0, true);
 
     base.startPWMControllers();
     arm1.startPWMControllers();
