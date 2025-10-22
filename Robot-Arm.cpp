@@ -11,6 +11,8 @@
 #include "quik/IKSolver.hpp"
 #include "Servo.hpp"
 
+#define SQUARE(x) ((x) * (x))
+
 // int main()
 // {
 //     stdio_init_all();
@@ -181,9 +183,10 @@ int main() {
         // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        Tn << 0, 0, 0, 0, \
-                0, 0, 0, 25.456, \ 
-                0, 0, 0, 25.456, \
+        float Tn_xyz[3] = {0.0f, 25.456f, 25.456f};
+        Tn << 0, 0, 0, Tn_xyz[0], \
+                0, 0, 0, Tn_xyz[1], \ 
+                0, 0, 0, Tn_xyz[2], \
                 0, 0, 0, 1;
 
         // R->print();
@@ -248,6 +251,10 @@ int main() {
         VectorXf err_vec = e_star.col(0); // Only one column because only one pose
         // TODO: Define error as purely based on translation position rather than rotation
         float normed_error = 0.0;
+        normed_error += SQUARE(Tn_xyz(0) - Q_star(0, 3));
+        normed_error += SQUARE(Tn_xyz(1) - Q_star(1, 3));
+        normed_error += SQUARE(Tn_xyz(2) - Q_star(2, 3));
+
         // for (auto i : err_vec) {
         //     normed_error += i * i; // Squared error
         // }
