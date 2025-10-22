@@ -11,6 +11,8 @@
 #include "quik/IKSolver.hpp"
 #include "Servo.hpp"
 
+#define SQUARE(x) ((x) * (x))
+
 // int main()
 // {
 //     stdio_init_all();
@@ -61,7 +63,7 @@ const quik::IKSolver<3> IKS(
     200, // max consequitive gradient fails
     800, // Max gradient fails
     1e-10, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
-    0.34, // Max linear error step
+    0.07, // 0.34, // Max linear error step
     1 // Max angular error step
 );
 
@@ -127,7 +129,7 @@ int main() {
 
     Servo base(2, 0);
     Servo arm1(3, 0);
-    Servo arm2(4, 0);
+    Servo arm2(4, 0, true);
 
     base.startPWMControllers();
     arm1.startPWMControllers();
@@ -181,9 +183,10 @@ int main() {
         // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        Tn << 0, 0, 0, 0, \
-                0, 0, 0, 25.456, \
-                0, 0, 0, 25.456, \
+        float Tn_xyz[3] = {0.0f, 25.456f, 25.456f};
+        Tn << 0, 0, 0, Tn_xyz[0], \
+                0, 0, 0, Tn_xyz[1], \ 
+                0, 0, 0, Tn_xyz[2], \
                 0, 0, 0, 1;
 
         // R->print();
@@ -246,11 +249,17 @@ int main() {
         printf("IK finished!\n");
 
         VectorXf err_vec = e_star.col(0); // Only one column because only one pose
+        // TODO: Define error as purely based on translation position rather than rotation
         float normed_error = 0.0;
-        for (auto i : err_vec) {
-            normed_error += i * i; // Squared error
-        }
-        printf("Final normed error for this run is: %f, min recorded is %f", sqrtf(normed_error), min_sqrt_normed_err);
+        normed_error += SQUARE(Tn_xyz(0) - Q_star(0, 3));
+        normed_error += SQUARE(Tn_xyz(1) - Q_star(1, 3));
+        normed_error += SQUARE(Tn_xyz(2) - Q_star(2, 3));
+
+        // for (auto i : err_vec) {
+        //     normed_error += i * i; // Squared error
+        // }
+        // normed_error = (Tn(0, 3) * Q_star(0, 0))
+        printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
 
         printf("\n");
 
@@ -295,11 +304,13 @@ int main() {
             min_sqrt_normed_err = sqrtf(normed_error);
             min_err_joint_angles = Q_star.col(0);
 
-            printf("Applying this transform because the error is least so far\n");
-            base.setAngleRad(Q_star(0, 0));
-            arm1.setAngleRad(Q_star(1, 0));
-            arm2.setAngleRad(Q_star(2, 0));
+            
         }
+
+        // printf("Applying this transform because the error is least so far\n");
+        base.setAngleRad(min_err_joint_angles(0, 0));
+        arm1.setAngleRad(min_err_joint_angles(1, 0));
+        arm2.setAngleRad(min_err_joint_angles(2, 0));
 
         base.print();
         arm1.print();
