@@ -30,7 +30,7 @@ class Servo {
         int zero_pw = 1500;
 
         float normalized_value = 0.0f;
-        float pwm_value = 0.0f;
+        // float pwm_value = 0.0f;
         // Currently outputted PWM pulse width
         int curr_pwm_pw = 0;
         float rel_angle_deg = 0.0f; // Relative to zero offset
@@ -41,9 +41,9 @@ class Servo {
         bool inverted;
     
     public:
-        Servo(int pin) : Servo(pin, 0) {}
+        explicit Servo(int pin) : Servo(pin, 0, 0) {}
 
-        Servo(int pin, float angle_offset_degrees) : Servo(pin, 0, 0) {}
+        Servo(int pin, float angle_offset_degrees) : Servo(pin, angle_offset_degrees, 0) {}
         
         Servo(int pin, float angle_offset_degrees, bool invert) {
             this->pin = pin;
