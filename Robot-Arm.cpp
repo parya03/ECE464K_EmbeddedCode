@@ -26,6 +26,12 @@
 using namespace std;
 using namespace Eigen;
 
+/* TODOs
+ * Protobuf communication over UART
+ * Rotation transformation matrix for IK
+ * Might have to add an RTOS for all this
+ * */
+
 // Define manipulator.
 // This is the DH parameters for the KUKA KR6 robot
 auto R = std::make_shared<quik::Robot<3>>(
@@ -128,12 +134,14 @@ int main() {
     /// \end::setup_pwm[]
 
     Servo base(2, 0);
-    Servo arm1(3, 0);
-    Servo arm2(4, 0, true);
+    Servo arm1(3, 0, false);
+    Servo arm2(4, 90);
+    Servo gripper(5, 0);
 
     base.startPWMControllers();
     arm1.startPWMControllers();
     arm2.startPWMControllers();
+    gripper.startPWMControllers();
 
     // Set up a UART RX interrupt
     // And set up and enable the interrupt handlers
@@ -184,6 +192,11 @@ int main() {
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
         float Tn_xyz[3] = {0.0f, 25.456f, 25.456f};
+        // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
+        float pitch = 0.0f; // -90 - 90
+        // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
+        // then matmul that Y-axis rotation with whichever other rotation we need (ex. Y axis)
+        // Matrix3f X_rot = Identity(4, 4);
         Tn << 0, 0, 0, Tn_xyz[0], \
                 0, 0, 0, Tn_xyz[1], \ 
                 0, 0, 0, Tn_xyz[2], \
@@ -248,21 +261,7 @@ int main() {
         
         printf("IK finished!\n");
 
-        VectorXf err_vec = e_star.col(0); // Only one column because only one pose
-        // TODO: Define error as purely based on translation position rather than rotation
-        float normed_error = 0.0;
-        normed_error += SQUARE(Tn_xyz(0) - Q_star(0, 3));
-        normed_error += SQUARE(Tn_xyz(1) - Q_star(1, 3));
-        normed_error += SQUARE(Tn_xyz(2) - Q_star(2, 3));
-
-        // for (auto i : err_vec) {
-        //     normed_error += i * i; // Squared error
-        // }
-        // normed_error = (Tn(0, 3) * Q_star(0, 0))
-        printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
-
-        printf("\n");
-
+        
         printf("Commanded transform (Tn):\n");
         for (int i = 0; i < Tn.rows(); i++) {
             for (int j = 0; j < Tn.cols(); j++) {
@@ -273,6 +272,24 @@ int main() {
 
         Matrix4f T_fk;
         R->FKn(Q_star.col(0), T_fk);
+
+        VectorXf err_vec = e_star.col(0); // Only one column because only one pose
+        // TODO: Define error as purely based on translation position rather than rotation
+        float normed_error = 0.0;
+        normed_error += SQUARE(Tn_xyz[0] - T_fk(0, 3));
+        normed_error += SQUARE(Tn_xyz[1] - T_fk(1, 3));
+        normed_error += SQUARE(Tn_xyz[2] - T_fk(2, 3));
+
+        // for (auto i : err_vec) {
+        //     normed_error += i * i; // Squared error
+        // }
+        // normed_error = (Tn(0, 3) * Q_star(0, 0))
+        printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
+
+        printf("\n");
+
+        
+
         // Vector3f zero_vec = Vector3f::Zero();
         // R->FKn(zero_vec, T_fk);
         printf("FK transformation matrix of computed angles (T_fk):\n");
@@ -311,6 +328,10 @@ int main() {
         base.setAngleRad(min_err_joint_angles(0, 0));
         arm1.setAngleRad(min_err_joint_angles(1, 0));
         arm2.setAngleRad(min_err_joint_angles(2, 0));
+        // base.setAngleRad(0);
+        // arm1.setAngleDegrees(0);
+        // arm2.setAngleRad(0);
+        gripper.setAngleDegrees(90);
 
         base.print();
         arm1.print();
