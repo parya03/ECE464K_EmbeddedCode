@@ -134,13 +134,16 @@ int main() {
     /// \end::setup_pwm[]
 
     Servo base(2, 0);
-    Servo arm1(3, 0, false);
+    Servo arm1(3, 0, true);
     Servo arm2(4, 90);
-    Servo gripper(5, 0);
+    Servo wrist(5, 0);
+    Servo gripper(6, 0);
+    
 
     base.startPWMControllers();
     arm1.startPWMControllers();
     arm2.startPWMControllers();
+    wrist.startPWMControllers();
     gripper.startPWMControllers();
 
     // Set up a UART RX interrupt
@@ -191,7 +194,7 @@ int main() {
         // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        float Tn_xyz[3] = {0.0f, 25.456f, 25.456f};
+        float Tn_xyz[3] = {15.0f, 15.0f, 15.0f};
         // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
         float pitch = 0.0f; // -90 - 90
         // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
@@ -331,7 +334,8 @@ int main() {
         // base.setAngleRad(0);
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
-        gripper.setAngleDegrees(90);
+        wrist.setAngleDegrees(90.0f);
+        gripper.setAngleDegrees(40.0f);
 
         base.print();
         arm1.print();
