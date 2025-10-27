@@ -204,9 +204,13 @@ int main() {
         //         0, c, -s, Tn_xyz[1], \ 
         //         0, s, c, Tn_xyz[2], \
         //         0, 0, 0, 1;
-        Tn << 1, 0, 0, Tn_xyz[0], \
-                0, c, -s, Tn_xyz[1], \ 
-                0, s, c, Tn_xyz[2], \
+        // Tn << 1, 0, 0, Tn_xyz[0], \
+        //         0, c, -s, Tn_xyz[1], \ 
+        //         0, s, c, Tn_xyz[2], \
+        //         0, 0, 0, 1;
+        Tn << 0, 0, 0, Tn_xyz[0], \
+                0, 0, 0, Tn_xyz[1], \ 
+                0, 0, 0, Tn_xyz[2], \
                 0, 0, 0, 1;
 
 
@@ -284,14 +288,14 @@ int main() {
         VectorXf err_vec = e_star.col(0); // Only one column because only one pose
         // TODO: Define error as purely based on translation position rather than rotation
         float normed_error = 0.0;
-        // normed_error += SQUARE(Tn_xyz[0] - T_fk(0, 3));
-        // normed_error += SQUARE(Tn_xyz[1] - T_fk(1, 3));
-        // normed_error += SQUARE(Tn_xyz[2] - T_fk(2, 3));
+        normed_error += SQUARE(Tn_xyz[0] - T_fk(0, 3));
+        normed_error += SQUARE(Tn_xyz[1] - T_fk(1, 3));
+        normed_error += SQUARE(Tn_xyz[2] - T_fk(2, 3));
 
-        for (auto i : err_vec) {
-            normed_error += i * i; // Squared error
-        }
-        // normed_error = (Tn(0, 3) * Q_star(0, 0));
+        // for (auto i : err_vec) {
+        //     normed_error += i * i; // Squared error
+        // }
+        // // normed_error = (Tn(0, 3) * Q_star(0, 0));
         printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
 
         printf("\n");
