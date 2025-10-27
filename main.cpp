@@ -2,15 +2,35 @@
  * Sets up FreeRTOS etc and starts the arm
  **/
 
+#include <stdio.h>
+#include "pico/time.h"
+#include "pico/stdlib.h"
+#include "hardware/pwm.h"
+#include <iostream>
+
 // #include <iostream>
 
 #include "FreeRTOS.h"
+#include "task.h"
 
 void vApplicationMallocFailedHook(void) {
     __asm("nop");
 }
 
-// int main() {
-//     // TaskHandle_tArm_Control_Task;
-//     // static StackType_t Arm_Control_stack[ configMINIMAL_STACK_SIZE ];
-// }
+extern void RobotArm_Task(void *pvParameters);
+TaskHandle_t RobotArm_Task_h = NULL;
+
+int main() {
+    // TaskHandle_tArm_Control_Task;
+    // static StackType_t Arm_Control_stack[ configMINIMAL_STACK_SIZE ];
+    
+    stdio_init_all();
+    // while(1) {
+    //     printf("Works yippee!\n");
+    // }
+    xTaskCreate(RobotArm_Task, "RobotArm-Task", 10240, NULL, 1, &RobotArm_Task_h);
+    
+    vTaskStartScheduler();
+
+    vTaskDelete(NULL);
+}

@@ -54,7 +54,7 @@
 #define configMAX_PRIORITIES                    32
 #define configMINIMAL_STACK_SIZE                ( configSTACK_DEPTH_TYPE ) 256
 #define configUSE_16_BIT_TICKS                  0
-#define configUSE_PASSIVE_IDLE_HOOK             1
+#define configUSE_PASSIVE_IDLE_HOOK             0
 #define configIDLE_SHOULD_YIELD                 1
 
 /* Synchronization Related */
@@ -80,7 +80,7 @@
 #define configAPPLICATION_ALLOCATED_HEAP        0
 
 /* Hook function related definitions. */
-#define configCHECK_FOR_STACK_OVERFLOW          2
+#define configCHECK_FOR_STACK_OVERFLOW          0
 #define configUSE_MALLOC_FAILED_HOOK            1
 #define configUSE_DAEMON_TASK_STARTUP_HOOK      0
 
