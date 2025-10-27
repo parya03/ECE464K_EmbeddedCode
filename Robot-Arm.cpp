@@ -36,22 +36,23 @@ using namespace Eigen;
 // This is the DH parameters for the KUKA KR6 robot
 auto R = std::make_shared<quik::Robot<3>>(
 	// Given as DOFx4 table, in the following order: a_i, alpha_i, d_i, theta_i.
-	(Matrix<float, 3, 4>() <<
-		0,    M_PI/2,        10.22f,       0,
+	(Matrix<float, 4, 4>() <<
+		0,    M_PI/2,        6.3,       0,
 		15.24f,   0,         0,            M_PI/2,
-		10.56f,   0,    0,           0).finished(),
+		10.33f,   0,    0,           0,
+        4.43 , 0, 0, 0).finished(),
 					  
 	// Second argument is a list of joint types
 	// true is prismatic, false is revolute
 	// KUKA KR6 only has revolute joints
-	(Vector<quik::JOINTTYPE_t,3>() << 
-        quik::JOINT_REVOLUTE, quik::JOINT_REVOLUTE, quik::JOINT_REVOLUTE
+	(Vector<quik::JOINTTYPE_t,4>() << 
+        quik::JOINT_REVOLUTE, quik::JOINT_REVOLUTE, quik::JOINT_REVOLUTE, quik::JOINT_REVOLUTE
     ).finished(),
 
 	// Third agument is a list of joint directions
 	// Allows you to change the sign (direction) of
 	// the joints.
-	(Vector<float,3>(3) << 1, 1, 1).finished(),
+	(Vector<float,4>(4) << 1, 1, 1, 1).finished(),
 
 	// Fourth and fifth arguments are the base and tool transforms, respectively
 	Matrix4f::Identity(4,4),
@@ -59,7 +60,7 @@ auto R = std::make_shared<quik::Robot<3>>(
 );
 
 // Define the IK options
-const quik::IKSolver<3> IKS(
+const quik::IKSolver<4> IKS(
     R, // The robot object (pointer)
     2000, // max number of iterations
     quik::ALGORITHM_NR, // quik::ALGORITHM_QUIK, // algorithm (ALGORITHM_QUIK, ALGORITHM_NR or ALGORITHM_BFGS)
@@ -97,7 +98,7 @@ void uart_rx_interrupt() {
 }
 
 float min_sqrt_normed_err = (float)__FLT_MAX__; // Big float init because err is (hopefully) less
-Vector3f min_err_joint_angles;
+Vector4f min_err_joint_angles;
 
 int main() {
     stdio_init_all();
@@ -156,7 +157,7 @@ int main() {
     //     arm2.zero();
     // }
 
-    Matrix<float,3,Dynamic> Q_prev;
+    Matrix<float,4,Dynamic> Q_prev;
     Q_prev.setRandom(R->dof, 1);
 
     while(1) {
@@ -194,12 +195,14 @@ int main() {
         float Tn_xyz[3] = {0.0f, 25.456f, 25.456f};
         // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
         float pitch = 0.0f; // -90 - 90
+        float s = sinf(pitch * M_PI / 180.0f);
+        float c = cosf(pitch * M_PI / 180.0f);
         // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
         // then matmul that Y-axis rotation with whichever other rotation we need (ex. Y axis)
         // Matrix3f X_rot = Identity(4, 4);
-        Tn << 0, 0, 0, Tn_xyz[0], \
-                0, 0, 0, Tn_xyz[1], \ 
-                0, 0, 0, Tn_xyz[2], \
+        Tn << c, 0, s, Tn_xyz[0], \
+                0, 1, 0, Tn_xyz[1], \ 
+                -s, 0, c, Tn_xyz[2], \
                 0, 0, 0, 1;
 
         // R->print();
