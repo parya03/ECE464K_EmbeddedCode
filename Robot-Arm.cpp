@@ -13,16 +13,6 @@
 
 #define SQUARE(x) ((x) * (x))
 
-// int main()
-// {
-//     stdio_init_all();
-
-//     while (true) {
-//         printf("Hello, world!\n");
-//         sleep_ms(1000);
-//     }
-// }
-
 using namespace std;
 using namespace Eigen;
 
@@ -100,47 +90,13 @@ float min_sqrt_normed_err = (float)__FLT_MAX__; // Big float init because err is
 Vector3f min_err_joint_angles;
 
 int RobotArm_Task(void *pvParameters) {
-    // stdio_init_all();
-
-    // gpio_init(0);
-    // gpio_set_pulls(0, false, true);
-    // gpio_set_dir(0, GPIO_IN);
-
-    // gpio_init(3);
-    // gpio_set_pulls(3, false, true);
-    // gpio_set_dir(3, GPIO_IN);
-
-    // gpio_init(4);
-    // gpio_set_pulls(4, false, true);
-    // gpio_set_dir(4, GPIO_IN);
-
-    // // Find out which PWM slice is connected to GPIO 0 (it's slice 0)
-    // uint slice_num = pwm_gpio_to_slice_num(0);
-    // uint32_t channel = pwm_gpio_to_channel(0);
-
-    // // 1MHz PWM clock from divider
-    // pwm_set_clkdiv_int_frac(slice_num, SYS_CLK_HZ / 1000000, 0);
-
-    // // Set period of 50 ms
-    // pwm_set_wrap(slice_num, 50000);
-    // // Center servo
-    // pwm_set_chan_level(slice_num, channel, 1500);
-
-    // // Set initial B output high for three cycles before dropping
-    // // pwm_set_chan_level(slice_num, PWM_CHAN_B, 3);
-    
-    // // Set the PWM running
-    // pwm_set_enabled(slice_num, true);
-    /// \end::setup_pwm[]
-
     printf("Robot Arm task started\n");
 
     Servo base(2, 0);
     Servo arm1(3, 0, true);
     Servo arm2(4, 90);
     Servo wrist(5, 0);
-    Servo gripper(6, 0);
-    
+    Servo gripper(6, 0);    
 
     base.startPWMControllers();
     arm1.startPWMControllers();
@@ -182,20 +138,10 @@ int RobotArm_Task(void *pvParameters) {
         Matrix4f    Tn(4,4); 	    // 4N * 4 matrix of vertically stacked transforms to be solved.
                                                     // This is just a convenient way of sending in an array of transforms.
         
-        // Generate some random joint configurations for the robot
-        // Q.setRandom(DOF, N);
-
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
         // Q0 = Q_prev.array();
         Q0 = Q_prev.array() + 0.01;
         // Q0 = Q_prev;
-
-        // Do forward kinematics of each Q sample and store in the "tall" matrix
-        // of transforms, Tn
-        // for (int i = 0; i < N; i++){
-        //     R->FKn( Q.col(i), T );
-        //     Tn.middleRows<4>(i*4) = T;
-        // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
         float Tn_xyz[3] = {15.0f, 15.0f, 15.0f};

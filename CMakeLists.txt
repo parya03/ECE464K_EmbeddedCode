@@ -39,7 +39,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Robot-Arm main.cpp Robot-Arm.cpp)
+add_executable(Robot-Arm main.cpp Robot-Arm.cpp Communication.cpp)
 
 pico_set_program_name(Robot-Arm "Robot-Arm")
 pico_set_program_version(Robot-Arm "0.1")
@@ -77,7 +77,7 @@ add_library(nanopb ${NANOPB_SRC} ${NANOPB_INC})
 # find_package(nanopb CONFIG REQUIRED)
 # target_link_libraries(Robot-Arm ${PROJECT_SOURCE_DIR}/nanopb)
 target_include_directories(quik PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/)
-target_include_directories(Robot-Arm PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/ ${PROJECT_SOURCE_DIR})
+target_include_directories(Robot-Arm PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/ ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/nanopb/)
 # find_package(quik)
 # find_package(Eigen3)
 
