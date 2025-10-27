@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package handtracking;
+
+message HandData {
+  double timestamp = 1;
+  float x = 2;
+  float y = 3;
+  float z = 4;
+  float openness = 5;
+  float pitch = 6;
+}

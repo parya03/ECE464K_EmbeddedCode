@@ -4,3 +4,6 @@
 [submodule "quik-embedded"]
 	path = quik-embedded
 	url = https://github.com/parya03/quik-embedded.git
+[submodule "nanopb"]
+	path = nanopb
+	url = https://github.com/nanopb/nanopb.git
