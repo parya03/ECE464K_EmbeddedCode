@@ -4,11 +4,13 @@
 
 // #include <iostream>
 
-#include <FreeRTOS.h>
+#include "FreeRTOS.h"
 
-int main() {
-    // TaskHandle_tArm_Control_Task;
-    // static StackType_t Arm_Control_stack[ configMINIMAL_STACK_SIZE ];
-    
-    xTaskCreate();
+void vApplicationMallocFailedHook(void) {
+    __asm("nop");
 }
+
+// int main() {
+//     // TaskHandle_tArm_Control_Task;
+//     // static StackType_t Arm_Control_stack[ configMINIMAL_STACK_SIZE ];
+// }
