@@ -164,7 +164,7 @@ int main() {
         // Initilize variables
         int N = 1; // Number of poses to generate
         int DOF = R->dof;
-        Matrix<float,3,Dynamic>    Q(DOF, N),	    // True joint angles
+        Matrix<float,4,Dynamic>    Q(DOF, N),	    // True joint angles
                                     Q0(DOF, N),	    // Initial guess of joint angles
                                     Q_star(DOF, N);	// Solver's solution
         Matrix<float,6,Dynamic>    e_star(6,N);	// Error at solver pose
@@ -192,7 +192,7 @@ int main() {
         // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        float Tn_xyz[3] = {0.0f, 25.456f, 25.456f};
+        float Tn_xyz[3] = {15.0f, 0.0f, 0.0f};
         // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
         float pitch = 0.0f; // -90 - 90
         float s = sinf(pitch * M_PI / 180.0f);
@@ -200,10 +200,15 @@ int main() {
         // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
         // then matmul that Y-axis rotation with whichever other rotation we need (ex. Y axis)
         // Matrix3f X_rot = Identity(4, 4);
-        Tn << c, 0, s, Tn_xyz[0], \
-                0, 1, 0, Tn_xyz[1], \ 
-                -s, 0, c, Tn_xyz[2], \
+        // Tn << 1, 0, 0, Tn_xyz[0], \
+        //         0, c, -s, Tn_xyz[1], \ 
+        //         0, s, c, Tn_xyz[2], \
+        //         0, 0, 0, 1;
+        Tn << 1, 0, 0, Tn_xyz[0], \
+                0, c, -s, Tn_xyz[1], \ 
+                0, s, c, Tn_xyz[2], \
                 0, 0, 0, 1;
+
 
         // R->print();
 
@@ -279,14 +284,14 @@ int main() {
         VectorXf err_vec = e_star.col(0); // Only one column because only one pose
         // TODO: Define error as purely based on translation position rather than rotation
         float normed_error = 0.0;
-        normed_error += SQUARE(Tn_xyz[0] - T_fk(0, 3));
-        normed_error += SQUARE(Tn_xyz[1] - T_fk(1, 3));
-        normed_error += SQUARE(Tn_xyz[2] - T_fk(2, 3));
+        // normed_error += SQUARE(Tn_xyz[0] - T_fk(0, 3));
+        // normed_error += SQUARE(Tn_xyz[1] - T_fk(1, 3));
+        // normed_error += SQUARE(Tn_xyz[2] - T_fk(2, 3));
 
-        // for (auto i : err_vec) {
-        //     normed_error += i * i; // Squared error
-        // }
-        // normed_error = (Tn(0, 3) * Q_star(0, 0))
+        for (auto i : err_vec) {
+            normed_error += i * i; // Squared error
+        }
+        // normed_error = (Tn(0, 3) * Q_star(0, 0));
         printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
 
         printf("\n");
