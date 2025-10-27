@@ -32,12 +32,14 @@ include(pico_sdk_import.cmake)
 
 project(Robot-Arm C CXX ASM)
 
+include(FreeRTOS_Kernel_import.cmake)
+
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Robot-Arm Robot-Arm.cpp)
+add_executable(Robot-Arm main.cpp Robot-Arm.cpp)
 
 pico_set_program_name(Robot-Arm "Robot-Arm")
 pico_set_program_version(Robot-Arm "0.1")
@@ -68,9 +70,14 @@ target_include_directories(Robot-Arm PRIVATE
 # add_subdirectory(${PROJECT_SOURCE_DIR}/quik)
 # include_directories(${PROJECT_SOURCE_DIR}/eigen)
 # include_directories(${PROJECT_SOURCE_DIR}/quik)
+FILE(GLOB NANOPB_INC ${PROJECT_SOURCE_DIR}/nanopb/*.h)
+FILE(GLOB NANOPB_SRC ${PROJECT_SOURCE_DIR}/nanopb/*.c)
 add_library(quik ${PROJECT_SOURCE_DIR}/quik-embedded/src/geometry.cpp ${QUIK_INC})
+add_library(nanopb ${NANOPB_SRC} ${NANOPB_INC})
+# find_package(nanopb CONFIG REQUIRED)
+# target_link_libraries(Robot-Arm ${PROJECT_SOURCE_DIR}/nanopb)
 target_include_directories(quik PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/)
-target_include_directories(Robot-Arm PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/)
+target_include_directories(Robot-Arm PRIVATE ${PROJECT_SOURCE_DIR}/quik-embedded/include ${PROJECT_SOURCE_DIR}/eigen/ ${PROJECT_SOURCE_DIR})
 # find_package(quik)
 # find_package(Eigen3)
 
@@ -79,5 +86,74 @@ target_link_libraries(Robot-Arm
         quik
         # Eigen3
         )
+
+# FreeRTOS stuff
+# set(FREERTOS_KERNEL_PATH ${PROJECT_SOURCE_DIR}/FreeRTOS-Kernel/)
+# include(FreeRTOS_Kernel_import.cmake)
+
+# Add the freertos_config for FreeRTOS-Kernel
+# add_library(freertos_config INTERFACE)
+
+# target_include_directories(freertos_config
+#     INTERFACE
+#     ${PROJECT_SOURCE_DIR}
+# )
+
+# if (DEFINED FREERTOS_SMP_EXAMPLE AND FREERTOS_SMP_EXAMPLE STREQUAL "1")
+#     message(STATUS "Build FreeRTOS SMP example")
+#     # Adding the following configurations to build SMP template port
+#     add_compile_options( -DconfigNUMBER_OF_CORES=2 -DconfigUSE_PASSIVE_IDLE_HOOK=0 )
+# endif()
+
+# Select the heap port.  values between 1-4 will pick a heap.
+# set(FREERTOS_HEAP "4" CACHE STRING "" FORCE)
+
+# Select the native compile PORT
+# set(FREERTOS_PORT "ThirdParty_GCC_RP2350_ARM_NTZ" CACHE STRING "" FORCE)
+
+# target_compile_definitions(freertos_config INTERFACE ${definitions})
+# target_compile_options(freertos_config INTERFACE ${options})
+
+# Adding the FreeRTOS-Kernel subdirectory
+# add_subdirectory(${FREERTOS_KERNEL_PATH} FreeRTOS-Kernel)
+
+# target_include_directories(Robot-Arm PRIVATE ${FREERTOS_KERNEL_PATH}/include)
+
+########################################################################
+# Overall Compile Options
+# Note the compile option strategy is to error on everything and then
+# Per library opt-out of things that are warnings/errors.
+# This ensures that no matter what strategy for compilation you take, the
+# builds will still occur.
+#
+# Only tested with GNU and Clang.
+# Other options are https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_ID.html#variable:CMAKE_%3CLANG%3E_COMPILER_ID
+# Naming of compilers translation map:
+#
+#   FreeRTOS    | CMake
+#   -------------------
+#   CCS         | ?TBD?
+#   GCC         | GNU, Clang, *Clang Others?
+#   IAR         | IAR
+#   Keil        | ARMCC
+#   MSVC        | MSVC # Note only for MinGW?
+#   Renesas     | ?TBD?
+
+target_compile_options(Robot-Arm PRIVATE
+        ### Gnu/Clang C Options
+        $<$<COMPILE_LANG_AND_ID:C,GNU>:-fdiagnostics-color=always>
+        $<$<COMPILE_LANG_AND_ID:C,Clang>:-fcolor-diagnostics>
+
+        $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wall>
+        $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Wextra>
+        # $<$<COMPILE_LANG_AND_ID:C,Clang,GNU>:-Werror>
+        $<$<COMPILE_LANG_AND_ID:C,Clang>:-Weverything>
+)
+
+# target_include_directories(FreeRTOS-Kernel ${PROJECT_SOURCE_DIR})
+# target_link_libraries(Robot-Arm freertos_kernel freertos_config)
+target_link_libraries(Robot-Arm FreeRTOS-Kernel FreeRTOS-Kernel-Heap4)
+
+# set_property(TARGET freertos_kernel PROPERTY C_STANDARD 99)
 
 pico_add_extra_outputs(Robot-Arm)

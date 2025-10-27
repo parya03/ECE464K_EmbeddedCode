@@ -4,3 +4,9 @@
 [submodule "quik-embedded"]
 	path = quik-embedded
 	url = https://github.com/parya03/quik-embedded.git
+[submodule "nanopb"]
+	path = nanopb
+	url = https://github.com/nanopb/nanopb.git
+[submodule "FreeRTOS-Kernel"]
+	path = FreeRTOS-Kernel
+	url = https://github.com/raspberrypi/FreeRTOS-Kernel.git

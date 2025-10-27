@@ -99,8 +99,8 @@ void uart_rx_interrupt() {
 float min_sqrt_normed_err = (float)__FLT_MAX__; // Big float init because err is (hopefully) less
 Vector3f min_err_joint_angles;
 
-int main() {
-    stdio_init_all();
+int RobotArm_Task(void *pvParameters) {
+    // stdio_init_all();
 
     // gpio_init(0);
     // gpio_set_pulls(0, false, true);
@@ -133,6 +133,8 @@ int main() {
     // pwm_set_enabled(slice_num, true);
     /// \end::setup_pwm[]
 
+    printf("Robot Arm task started\n");
+
     Servo base(2, 0);
     Servo arm1(3, 0, false);
     Servo arm2(4, 90);
@@ -158,6 +160,8 @@ int main() {
 
     Matrix<float,3,Dynamic> Q_prev;
     Q_prev.setRandom(R->dof, 1);
+
+    printf("PWM started\n");
 
     while(1) {
         // Initilize variables
