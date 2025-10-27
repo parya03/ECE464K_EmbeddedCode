@@ -34,7 +34,7 @@ using namespace Eigen;
 
 // Define manipulator.
 // This is the DH parameters for the KUKA KR6 robot
-auto R = std::make_shared<quik::Robot<3>>(
+auto R = std::make_shared<quik::Robot<4>>(
 	// Given as DOFx4 table, in the following order: a_i, alpha_i, d_i, theta_i.
 	(Matrix<float, 4, 4>() <<
 		0,    M_PI/2,        6.3,       0,
