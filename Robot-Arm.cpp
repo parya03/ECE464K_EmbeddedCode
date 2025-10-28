@@ -6,10 +6,15 @@
 // #include <chrono>
 #include "Eigen/Dense"
 #include <math.h>
+#include "projdefs.h"
 #include "quik/geometry.hpp"
 #include "quik/Robot.hpp"
 #include "quik/IKSolver.hpp"
 #include "Servo.hpp"
+#include "FreeRTOS.h"
+#include "robot.pb.h"
+#include "stream_buffer.h"
+#include "Communication.hpp"
 
 #define SQUARE(x) ((x) * (x))
 
@@ -65,29 +70,19 @@ const quik::IKSolver<3> IKS(
 
 bool run_state = true;
 
-// Used to read input data
-void uart_rx_interrupt() {
-    while (uart_is_readable(uart0)) {
-        uint8_t ch = uart_getc(uart0);
-
-        if(ch == '0') {
-            run_state = false;
-        }
-        if(ch == '1') {
-            run_state = true;
-        }
-        // Can we send it back?
-        if (uart_is_writable(uart0)) {
-            // Change it slightly first!
-            ch++;
-            uart_putc(uart0, ch);
-        }
-        // chars_rxed++;
-    }
-}
-
 float min_sqrt_normed_err = (float)__FLT_MAX__; // Big float init because err is (hopefully) less
 Vector3f min_err_joint_angles;
+
+// Data for hand position that we are currently working with
+// Updated and recieved from stream buffer
+handdata_t curr_position = {
+    .timestamp = 0.0f,
+    .x = 0.0f,
+    .y = 0.0f,
+    .z = 40.0f, // Start basically straight up (zero joint angle)
+    .openness = 0.0f,
+    .pitch = 0.0f,
+};
 
 int RobotArm_Task(void *pvParameters) {
     printf("Robot Arm task started\n");
@@ -116,6 +111,11 @@ int RobotArm_Task(void *pvParameters) {
     //     arm1.zero();
     //     arm2.zero();
     // }
+    
+    // Wait on communication stream buffer
+    while(!communication_stream_buf) {
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
 
     Matrix<float,3,Dynamic> Q_prev;
     Q_prev.setRandom(R->dof, 1);
@@ -137,16 +137,23 @@ int RobotArm_Task(void *pvParameters) {
         
         Matrix4f    Tn(4,4); 	    // 4N * 4 matrix of vertically stacked transforms to be solved.
                                                     // This is just a convenient way of sending in an array of transforms.
-        
+
+        // Update current data based off of stream buffer if data is available
+        // Don't block - if data isn't available keep going with what we currently have
+        xStreamBufferReceive(communication_stream_buf, &curr_position, sizeof(handdata_t), 0);
+
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
         // Q0 = Q_prev.array();
         Q0 = Q_prev.array() + 0.01;
         // Q0 = Q_prev;
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        float Tn_xyz[3] = {15.0f, 15.0f, 15.0f};
+        // float Tn_xyz[3] = {15.0f, 15.0f, 15.0f};
         // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
-        float pitch = 0.0f; // -90 - 90
+        // float pitch = 0.0f; // -90 - 90
+        float Tn_xyz[3] = {curr_position.x, curr_position.y, curr_position.z};
+        float pitch = curr_position.pitch;
+
         // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
         // then matmul that Y-axis rotation with whichever other rotation we need (ex. Y axis)
         // Matrix3f X_rot = Identity(4, 4);
