@@ -18,7 +18,7 @@
 #include "task.h"
 #include "stream_buffer.h"
 
-#define INPUT_BUFFER_SIZE 255
+#define INPUT_BUFFER_SIZE 1024 
 #define DATA_INPUT_TIME_MS 10 // Time per data input sample over UART
 
 // Buffer used to send data to IK

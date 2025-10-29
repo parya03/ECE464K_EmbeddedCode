@@ -140,8 +140,10 @@ int RobotArm_Task(void *pvParameters) {
 
         // Update current data based off of stream buffer if data is available
         // Don't block - if data isn't available keep going with what we currently have
-        xStreamBufferReceive(communication_stream_buf, &curr_position, sizeof(handdata_t), 0);
-
+        auto sb_bytes_received = xStreamBufferReceive(communication_stream_buf, &curr_position, sizeof(handdata_t), 0);
+        if(sb_bytes_received) {
+            printf("Receieved %d bytes from SB\n", sb_bytes_received);
+        }
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
         // Q0 = Q_prev.array();
         Q0 = Q_prev.array() + 0.01;
@@ -207,11 +209,11 @@ int RobotArm_Task(void *pvParameters) {
         // }
         // printf("\n");
 
-        printf("Break reason is:\n");
-        for (const auto& reason : breakReason) {
-            printf("%d ", reason);
-        }
-        printf("\n");
+        // printf("Break reason is:\n");
+        // for (const auto& reason : breakReason) {
+        //     printf("%d ", reason);
+        // }
+        // printf("\n");
 
         // printf("Number of iterations:\n");
         // for (const auto& iter_i : iter) {
@@ -294,9 +296,9 @@ int RobotArm_Task(void *pvParameters) {
         wrist.setAngleDegrees(90.0f);
         gripper.setAngleDegrees(40.0f);
 
-        base.print();
-        arm1.print();
-        arm2.print();
+        // base.print();
+        // arm1.print();
+        // arm2.print();
 
         Q_prev = Q_star;
 
