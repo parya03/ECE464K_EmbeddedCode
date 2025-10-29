@@ -3,13 +3,16 @@
  **/
 
 #include "Communication.hpp"
+#include <hardware/sync.h>
+#include <pico/error.h>
+#include <pico/stdio.h>
 // #include "projdefs.h"
 // #include "robot.pb.h"
 
 StreamBufferHandle_t communication_stream_buf = NULL;
 
 static int decode_message(uint8_t in_buffer[INPUT_BUFFER_SIZE], size_t message_size_bytes, handdata_t *data_struct) {
-    pb_istream_t istream = pb_istream_from_buffer(in_buffer, message_size_bytes-1);
+    pb_istream_t istream = pb_istream_from_buffer(in_buffer, message_size_bytes);
     
     handtracking_HandData message = handtracking_HandData_init_zero; // Allocate stack space
     auto status = pb_decode(&istream, handtracking_HandData_fields, &message);
@@ -52,7 +55,7 @@ static int decode_message(uint8_t in_buffer[INPUT_BUFFER_SIZE], size_t message_s
 
 void Decode_Task(void *pvParameters) {
     // Input data buffer
-    char input_data[INPUT_BUFFER_SIZE];
+    signed char input_data[INPUT_BUFFER_SIZE];
     int input_data_size = 0;
 
     // Set up UART interrupt, data buffer, etc                                t
@@ -72,16 +75,34 @@ void Decode_Task(void *pvParameters) {
         // Main loop
         
         // Grab input if it isn't EOF
+        // TODO this is kinda jank so maybe fix it??
         input_data_size = 0;
-        do {
-            input_data[input_data_size] = stdio_getchar();
-        } 
-        input_data_size = stdio_get_until(input_data, INPUT_BUFFER_SIZE, 0);
-        if(input_data_size == PICO_ERROR_TIMEOUT) {
-            // No data available yet, delay a bit and go back to top
+        input_data[input_data_size] = stdio_getchar();
+        if(input_data[input_data_size] == EOF) {
             vTaskDelay(pdMS_TO_TICKS(DATA_INPUT_TIME_MS));
-            continue;
+            continue; // Still no input so start again
         }
+        printf("Hit\n");
+        while(input_data[input_data_size] != PICO_ERROR_TIMEOUT) {
+            input_data_size++;
+            if(input_data_size >= INPUT_BUFFER_SIZE) {
+                printf("Serial data buffer overflowed!\n");
+                // __asm("div r0, r0, #0"); // Cursed but functional way to force an exception
+                while(1) {
+                    disable_interrupts();
+                    __asm("nop"); // Keep here so we don't have to keep unplugging the thing to force into BOOTSEL
+                }
+            }
+            // printf("Char: %c, Data size: %d\n", input_data[input_data_size], input_data_size);
+            input_data[input_data_size] = stdio_getchar_timeout_us(2000); // Wait a ms for new chars since serial baud rate may be slow
+        }
+
+        // input_data_size = stdio_get_until(input_data, INPUT_BUFFER_SIZE, 0);
+        // if(input_data_size == PICO_ERROR_TIMEOUT) {
+        //     // No data available yet, delay a bit and go back to top
+        //     vTaskDelay(pdMS_TO_TICKS(DATA_INPUT_TIME_MS));
+        //     continue;
+        // }
 
         printf("USB input size: %d\n", input_data_size);
 
