@@ -294,14 +294,15 @@ int RobotArm_Task(void *pvParameters) {
         }
 
         // printf("Applying this transform because the error is least so far\n");
-        base.setAngleRad(min_err_joint_angles(0, 0));
-        arm1.setAngleRad(min_err_joint_angles(1, 0));
-        arm2.setAngleRad(min_err_joint_angles(2, 0));
-        // base.setAngleRad(0);
-        // arm1.setAngleDegrees(0);
-        // arm2.setAngleRad(0);
+        // base.setAngleRad(min_err_joint_angles(0, 0));
+        // arm1.setAngleRad(min_err_joint_angles(1, 0));
+        // arm2.setAngleRad(min_err_joint_angles(2, 0));
+        base.setAngleRad(0);
+        arm1.setAngleDegrees(0);
+        arm2.setAngleRad(0);
         wrist.setAngleDegrees(pitch);
-        gripper.setAngleDegrees(curr_position.openness);
+        float gripper_angle = (-90.0/100.0)*curr_position.openness + 90.0;
+        gripper.setAngleDegrees(-gripper_angle);
 
         // base.print();
         // arm1.print();

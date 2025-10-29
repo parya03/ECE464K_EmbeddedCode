@@ -19,7 +19,7 @@
 #include "stream_buffer.h"
 
 #define INPUT_BUFFER_SIZE 255 // Bytes 
-#define HANDDATA_SB_SIZE (8 * sizeof(handdata_t)) // Stream buffer size must be minimum sizeof(handdata_t)
+#define HANDDATA_SB_SIZE (1 * sizeof(handdata_t)) // Stream buffer size must be minimum sizeof(handdata_t)
 #define DATA_INPUT_TIME_MS 10 // Time per data input sample over UART
 
 // Buffer used to send data to IK
