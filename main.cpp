@@ -31,8 +31,10 @@ int main() {
     //     printf("Works yippee!\n");
     // }
     xTaskCreate(RobotArm_Task, "RobotArm-Task", 10240, NULL, 1, &RobotArm_Task_handle);
+    vTaskCoreAffinitySet(RobotArm_Task_handle, 0x2); // Run this on second core exclusively
     xTaskCreate(Decode_Task, "Decode-Task", 10240, NULL, 1, &Decode_Task_handle);
-    
+    vTaskCoreAffinitySet(Decode_Task_handle, 0x1); // Run this on second core exclusively
+                                                     
     vTaskStartScheduler();
 
     vTaskDelete(NULL);
