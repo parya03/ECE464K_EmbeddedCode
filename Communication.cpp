@@ -32,27 +32,6 @@ static int decode_message(uint8_t in_buffer[INPUT_BUFFER_SIZE], size_t message_s
     return status;
 }
 
-// // UART interrupts used to read input data
-// void uart_rx_interrupt() {
-//     while (uart_is_readable(uart0)) {
-//         uint8_t ch = uart_getc(uart0);
-//
-//         if(ch == '0') {
-//             run_state = false;
-//         }
-//         if(ch == '1') {
-//             run_state = true;
-//         }
-//         // Can we send it back?
-//         if (uart_is_writable(uart0)) {
-//             // Change it slightly first!
-//             ch++;
-//             uart_putc(uart0, ch);
-//         }
-//         // chars_rxed++;
-//     }
-// }
-
 void Decode_Task(void *pvParameters) {
     // Input data buffer
     signed char input_data[INPUT_BUFFER_SIZE];
@@ -97,14 +76,7 @@ void Decode_Task(void *pvParameters) {
             input_data[input_data_size] = stdio_getchar_timeout_us(2000); // Wait a ms for new chars since serial baud rate may be slow
         }
 
-        // input_data_size = stdio_get_until(input_data, INPUT_BUFFER_SIZE, 0);
-        // if(input_data_size == PICO_ERROR_TIMEOUT) {
-        //     // No data available yet, delay a bit and go back to top
-        //     vTaskDelay(pdMS_TO_TICKS(DATA_INPUT_TIME_MS));
-        //     continue;
-        // }
-
-        printf("USB input size: %d\n", input_data_size);
+        // printf("USB input size: %d\n", input_data_size);
 
         auto status = decode_message(reinterpret_cast<uint8_t *>(input_data), input_data_size, &handdata_temp);
         if(!status) {
@@ -112,7 +84,7 @@ void Decode_Task(void *pvParameters) {
             continue;
         }
 
-        printf("Handdata timestamp: %f\n", handdata_temp.timestamp);
+        // printf("Handdata timestamp: %f\n", handdata_temp.timestamp);
 
         auto sb_status = xStreamBufferSend(communication_stream_buf, &handdata_temp, sizeof(handdata_t), pdMS_TO_TICKS(50));
         if(!sb_status) {
