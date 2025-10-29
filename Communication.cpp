@@ -76,7 +76,7 @@ void Decode_Task(void *pvParameters) {
             input_data[input_data_size] = stdio_getchar_timeout_us(2000); // Wait a ms for new chars since serial baud rate may be slow
         }
 
-        // printf("USB input size: %d\n", input_data_size);
+        printf("USB input size: %d\n", input_data_size);
 
         auto status = decode_message(reinterpret_cast<uint8_t *>(input_data), input_data_size, &handdata_temp);
         if(!status) {

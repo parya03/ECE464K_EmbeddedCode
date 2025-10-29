@@ -117,12 +117,12 @@ int RobotArm_Task(void *pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1));
     }
     
-    while(1) {
-        base.zero();
-        arm1.zero();
-        arm2.zero();
-        wrist.zero();
-    }
+    // while(1) {
+    //     base.zero();
+    //     arm1.zero();
+    //     arm2.zero();
+    //     wrist.zero();
+    // }
 
     Matrix<float,3,Dynamic> Q_prev;
     Q_prev.setRandom(R->dof, 1);
