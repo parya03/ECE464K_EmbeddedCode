@@ -300,8 +300,8 @@ int RobotArm_Task(void *pvParameters) {
         // base.setAngleRad(0);
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
-        wrist.setAngleDegrees(0.0f);
-        gripper.setAngleDegrees(20.0f);
+        wrist.setAngleDegrees(pitch);
+        gripper.setAngleDegrees(curr_position.openness);
 
         // base.print();
         // arm1.print();
