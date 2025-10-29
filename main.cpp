@@ -7,6 +7,7 @@
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 #include <iostream>
+#include "Communication.hpp"
 
 // #include <iostream>
 
@@ -18,7 +19,8 @@ void vApplicationMallocFailedHook(void) {
 }
 
 extern void RobotArm_Task(void *pvParameters);
-TaskHandle_t RobotArm_Task_h = NULL;
+TaskHandle_t RobotArm_Task_handle = NULL;
+TaskHandle_t Decode_Task_handle = NULL;
 
 int main() {
     // TaskHandle_tArm_Control_Task;
@@ -28,7 +30,8 @@ int main() {
     // while(1) {
     //     printf("Works yippee!\n");
     // }
-    xTaskCreate(RobotArm_Task, "RobotArm-Task", 10240, NULL, 1, &RobotArm_Task_h);
+    xTaskCreate(RobotArm_Task, "RobotArm-Task", 10240, NULL, 1, &RobotArm_Task_handle);
+    xTaskCreate(Decode_Task, "Decode-Task", 10240, NULL, 1, &Decode_Task_handle);
     
     vTaskStartScheduler();
 

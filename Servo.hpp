@@ -121,11 +121,11 @@ class Servo {
         void setAngleDegrees(float angle) {
             rel_angle_deg = angle + zero_angle_offset_degrees;
 
-            printf("Angle requested: %f deg, after adding offset: %f deg\n", angle, rel_angle_deg);
+            // printf("Angle requested: %f deg, after adding offset: %f deg\n", angle, rel_angle_deg);
 
             rel_angle_deg = fmodf(rel_angle_deg, 360.0f);
 
-            printf("Angle between -360 to 360: %f deg\n", rel_angle_deg);
+            // printf("Angle between -360 to 360: %f deg\n", rel_angle_deg);
 
             if(rel_angle_deg >= 270.0f && rel_angle_deg <= 360.0f) {
                 rel_angle_deg -= 360.0f;
@@ -165,7 +165,7 @@ class Servo {
             //     rel_angle_deg = 90.0f; // range wrap between -90 to 90
             // }
 
-            printf("Angle in range -90 to 90: %f deg\n", rel_angle_deg);
+            // printf("Angle in range -90 to 90: %f deg\n", rel_angle_deg);
 
             curr_pwm_pw = inverted ? 1500 + (rel_angle_deg * US_PER_DEGREE) : 1500 - (rel_angle_deg * US_PER_DEGREE);
             pwm_set_chan_level(slice_num, channel, curr_pwm_pw);
