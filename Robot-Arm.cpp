@@ -115,6 +115,7 @@ int RobotArm_Task(void *pvParameters) {
     // Wait on communication stream buffer
     while(!communication_stream_buf) {
         vTaskDelay(pdMS_TO_TICKS(1));
+    }
     
     while(1) {
         base.zero();
