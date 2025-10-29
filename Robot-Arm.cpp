@@ -155,11 +155,12 @@ int RobotArm_Task(void *pvParameters) {
 
     // Now enable the UART to send interrupts - RX only
     // uart_set_irq_enables(uart0, true, false);
-    // while(1) {
-    //     base.zero();
-    //     arm1.zero();
-    //     arm2.zero();
-    // }
+    while(1) {
+        base.zero();
+        arm1.zero();
+        arm2.zero();
+        wrist.zero();
+    }
 
     Matrix<float,3,Dynamic> Q_prev;
     Q_prev.setRandom(R->dof, 1);
@@ -198,7 +199,7 @@ int RobotArm_Task(void *pvParameters) {
         // }
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        float Tn_xyz[3] = {15.0f, 15.0f, 15.0f};
+        float Tn_xyz[3] = {15.0f, 0.0f, 15.0f};
         // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
         float pitch = 0.0f; // -90 - 90
         // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
@@ -338,8 +339,8 @@ int RobotArm_Task(void *pvParameters) {
         // base.setAngleRad(0);
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
-        wrist.setAngleDegrees(90.0f);
-        gripper.setAngleDegrees(40.0f);
+        wrist.setAngleDegrees(0.0f);
+        gripper.setAngleDegrees(20.0f);
 
         base.print();
         arm1.print();
