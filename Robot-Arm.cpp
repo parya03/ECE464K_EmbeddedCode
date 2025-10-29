@@ -115,6 +115,12 @@ int RobotArm_Task(void *pvParameters) {
     // Wait on communication stream buffer
     while(!communication_stream_buf) {
         vTaskDelay(pdMS_TO_TICKS(1));
+    
+    while(1) {
+        base.zero();
+        arm1.zero();
+        arm2.zero();
+        wrist.zero();
     }
 
     Matrix<float,3,Dynamic> Q_prev;
@@ -293,8 +299,8 @@ int RobotArm_Task(void *pvParameters) {
         // base.setAngleRad(0);
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
-        wrist.setAngleDegrees(90.0f);
-        gripper.setAngleDegrees(40.0f);
+        wrist.setAngleDegrees(0.0f);
+        gripper.setAngleDegrees(20.0f);
 
         // base.print();
         // arm1.print();
