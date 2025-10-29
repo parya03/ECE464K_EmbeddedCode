@@ -41,7 +41,7 @@ void Decode_Task(void *pvParameters) {
     
     // Set up stream buffer
     // The stream buffer is an RTOS-controlled buffer to handle sending data between threads (this to IK thread)
-    communication_stream_buf = xStreamBufferCreate(sizeof(handdata_t), sizeof(handdata_t));
+    communication_stream_buf = xStreamBufferCreate(sizeof(handdata_t), HANDDATA_SB_SIZE);
 
     // Wait until UART available, sleep block if not 
     while(!stdio_usb_connected()) {
