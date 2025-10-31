@@ -16,15 +16,15 @@ StreamBufferHandle_t communication_stream_buf = NULL;
 static int decode_message(uint8_t in_buffer[INPUT_BUFFER_SIZE], size_t message_size_bytes, handdata_t *data_struct) {
     pb_istream_t istream = pb_istream_from_buffer(in_buffer, message_size_bytes);
     
-    auto startTime = to_ms_since_boot(get_absolute_time());
+    auto startTime_comm = to_ms_since_boot(get_absolute_time());
     handtracking_HandData message = handtracking_HandData_init_zero; // Allocate stack space
     auto status = pb_decode(&istream, handtracking_HandData_fields, &message);
-    auto endTime = to_ms_since_boot(get_absolute_time());
+    auto endTime_comm = to_ms_since_boot(get_absolute_time());
     if(!status) {
         printf("Error decoding protobuf message: %s\n", istream.errmsg);
         goto decode_return;
     }                                                                         
-    printf("Protobuf decode: Total time taken: %d ms\n", endTime - startTime);
+    printf("Protobuf decode: Total time taken: %d ms\n", endTime_comm - startTime_comm);
 
 
     data_struct->timestamp = message.timestamp;

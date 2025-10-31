@@ -122,6 +122,7 @@ int RobotArm_Task(void *pvParameters) {
     //     arm1.zero();
     //     arm2.zero();
     //     wrist.zero();
+    //     gripper.zero();
     // }
 
     Matrix<float,3,Dynamic> Q_prev;
@@ -157,10 +158,10 @@ int RobotArm_Task(void *pvParameters) {
         // Q0 = Q_prev;
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
-        // float Tn_xyz[3] = {15.0f, 15.0f, 15.0f};
+        float Tn_xyz[3] = {20.0f, 0.0f, 20.0f};
         // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
         // float pitch = 0.0f; // -90 - 90
-        float Tn_xyz[3] = {curr_position.x, curr_position.y, curr_position.z};
+        // float Tn_xyz[3] = {curr_position.x, curr_position.y, curr_position.z};
         float pitch = curr_position.pitch;
 
         // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
@@ -299,10 +300,10 @@ int RobotArm_Task(void *pvParameters) {
         // arm2.setAngleRad(min_err_joint_angles(2, 0));
         base.setAngleRad(0);
         arm1.setAngleDegrees(0);
-        arm2.setAngleRad(0);
+        arm2.setAngleRad(0, true);
         wrist.setAngleDegrees(pitch);
-        float gripper_angle = (-90.0/100.0)*curr_position.openness + 90.0;
-        gripper.setAngleDegrees(-gripper_angle);
+        float gripper_angle = 90.0*(1 - (curr_position.openness/100.0));
+        gripper.setAngleDegrees(gripper_angle);
 
         // base.print();
         // arm1.print();
@@ -310,7 +311,7 @@ int RobotArm_Task(void *pvParameters) {
 
         Q_prev = Q_star;
 
-        sleep_ms(1000);
+        // sleep_ms(1000);
     }
 	
 	return 0;

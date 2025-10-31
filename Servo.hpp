@@ -118,7 +118,7 @@ class Servo {
         }
 
         // Total Angle = -180 - 180 taking offset into account
-        void setAngleDegrees(float angle) {
+        void setAngleDegrees(float angle, bool isArm2=false) {
             rel_angle_deg = angle + zero_angle_offset_degrees;
 
             // printf("Angle requested: %f deg, after adding offset: %f deg\n", angle, rel_angle_deg);
@@ -141,6 +141,9 @@ class Servo {
 
                 if(rel_angle_deg > 90 && rel_angle_deg <= 180) {
                     rel_angle_deg = 90;
+                    if(isArm2) {
+                        rel_angle_deg = 70;
+                    }
                 }
 
                 if(rel_angle_deg >= -180 && rel_angle_deg < -90) {
@@ -149,6 +152,9 @@ class Servo {
 
                 if(rel_angle_deg >= -270 && rel_angle_deg < -180) {
                     rel_angle_deg = 90;
+                    if(isArm2) {
+                        rel_angle_deg = 70;
+                    }
                 }
             }
             // if(rel_angle_deg < 0) {
