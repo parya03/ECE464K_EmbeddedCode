@@ -56,13 +56,13 @@ auto R = std::make_shared<quik::Robot<3>>(
 // Define the IK options
 const quik::IKSolver<3> IKS(
     R, // The robot object (pointer)
-    2000, // max number of iterations
-    quik::ALGORITHM_NR, // quik::ALGORITHM_QUIK, // algorithm (ALGORITHM_QUIK, ALGORITHM_NR or ALGORITHM_BFGS)
+    800, // max number of iterations
+    quik::ALGORITHM_QUIK, // quik::ALGORITHM_QUIK, // algorithm (ALGORITHM_QUIK, ALGORITHM_NR or ALGORITHM_BFGS)
     1e-12, // Exit tolerance
     1e-14, // Minimum step tolerance
     0.005, // iteration-to-iteration improvement tolerance (0.05 = 5% relative improvement)
     200, // max consequitive gradient fails
-    800, // Max gradient fails
+    500, // Max gradient fails
     1e-10, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
     0.07, // 0.34, // Max linear error step
     1 // Max angular error step
@@ -78,8 +78,8 @@ Vector3f min_err_joint_angles;
 handdata_t curr_position = {
     .timestamp = 0.0f,
     .x = 0.0f,
-    .y = 0.0f,
-    .z = 40.0f, // Start basically straight up (zero joint angle)
+    .y = 20.0f,
+    .z = 20.0f, // Start basically straight up (zero joint angle)
     .openness = 0.0f,
     .pitch = 0.0f,
 };
@@ -261,28 +261,28 @@ int RobotArm_Task(void *pvParameters) {
 
         // Vector3f zero_vec = Vector3f::Zero();
         // R->FKn(zero_vec, T_fk);
-        printf("FK transformation matrix of computed angles (T_fk):\n");
-        for (int i = 0; i < T_fk.rows(); i++) {
-            for (int j = 0; j < T_fk.cols(); j++) {
-                printf("%f ", T_fk(i, j));
-            }
-            printf("\n");
-        }
+        // printf("FK transformation matrix of computed angles (T_fk):\n");
+        // for (int i = 0; i < T_fk.rows(); i++) {
+        //     for (int j = 0; j < T_fk.cols(); j++) {
+        //         printf("%f ", T_fk(i, j));
+        //     }
+        //     printf("\n");
+        // }
 
         printf("Best joint angles so far:\n");
         for(auto i : min_err_joint_angles) {
             printf("%f \n", i);
         }
         printf("\n");
-
-        R->FKn(min_err_joint_angles, T_fk);
-        printf("FK transformation matrix of best angles (T_fk):\n");
-        for (int i = 0; i < T_fk.rows(); i++) {
-            for (int j = 0; j < T_fk.cols(); j++) {
-                printf("%f ", T_fk(i, j));
-            }
-            printf("\n");
-        }
+        //
+        // R->FKn(min_err_joint_angles, T_fk);
+        // printf("FK transformation matrix of best angles (T_fk):\n");
+        // for (int i = 0; i < T_fk.rows(); i++) {
+        //     for (int j = 0; j < T_fk.cols(); j++) {
+        //         printf("%f ", T_fk(i, j));
+        //     }
+        //     printf("\n");
+        // }
 
         printf("Total time taken: %d ms\n", endTime - startTime);
 
