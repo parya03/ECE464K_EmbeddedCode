@@ -2,7 +2,7 @@
 #include "pico/time.h"
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
-#include <iostream>
+#include <iostream>         
 // #include <chrono>
 #include "Eigen/Dense"
 #include <math.h>
@@ -22,9 +22,9 @@ using namespace std;
 using namespace Eigen;
 
 /* TODOs
- * Protobuf communication over UART
- * Rotation transformation matrix for IK
- * Might have to add an RTOS for all this
+ * Make error take new position into account
+ * Fix communication buffer overflow
+ * Latency optimization
  * */
 
 // Define manipulator.

@@ -92,7 +92,7 @@ void Decode_Task(void *pvParameters) {
 
         // printf("Handdata timestamp: %f\n", handdata_temp.timestamp);
 
-        auto sb_status = xStreamBufferSend(communication_stream_buf, &handdata_temp, sizeof(handdata_t), pdMS_TO_TICKS(50));
+        auto sb_status = xStreamBufferSend(communication_stream_buf, &handdata_temp, sizeof(handdata_t), 0);
         if(!sb_status) {
             printf("Error sending message thru stream buffer, status %d\n", sb_status);
         }
