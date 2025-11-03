@@ -180,14 +180,14 @@ int RobotArm_Task(void *pvParameters) {
         // printf("Hit\n");
         // Start a timer, to get time
         // auto startTime = chrono::high_resolution_clock::now();
-        auto startTime = to_ms_since_boot(get_absolute_time());
+        auto startTime = pdTICKS_TO_MS(xTaskGetTickCount());
 
         // Solve using the IK function, store results in Q_star, e_star, iter and breakreason
         IKS.IK(Tn, Q0, Q_star, e_star, iter, breakReason);
 
         // Get the time after calling the IK function
         // chrono::duration<float, std::micro> elapsed = chrono::high_resolution_clock::now() - startTime;
-        auto endTime = to_ms_since_boot(get_absolute_time());
+        auto endTime = pdTICKS_TO_MS(xTaskGetTickCount());
 
         // Print out results
         // printf("Joint angles (start):\n");
