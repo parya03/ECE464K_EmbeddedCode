@@ -16,14 +16,14 @@
 #include "pico/stdio_usb.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "stream_buffer.h"
+#include "message_buffer.h"
 
 #define INPUT_BUFFER_SIZE 255 // Bytes 
-#define HANDDATA_SB_SIZE (1 * sizeof(handdata_t)) // Stream buffer size must be minimum sizeof(handdata_t)
+#define HANDDATA_SB_SIZE ((1 * sizeof(handdata_t)) + (sizeof(size_t))) // Stream buffer size must be minimum sizeof(handdata_t)
 #define DATA_INPUT_TIME_MS 10 // Time per data input sample over UART
 
 // Buffer used to send data to IK
-extern StreamBufferHandle_t communication_stream_buf;
+extern MessageBufferHandle_t communication_message_buf;
 
 // Hand data struct definition directly from .proto file
 typedef struct {

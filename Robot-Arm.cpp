@@ -113,7 +113,7 @@ int RobotArm_Task(void *pvParameters) {
     // }
     
     // Wait on communication stream buffer
-    while(!communication_stream_buf) {
+    while(!communication_message_buf) {
         vTaskDelay(pdMS_TO_TICKS(1));
     }
     
@@ -148,9 +148,11 @@ int RobotArm_Task(void *pvParameters) {
 
         // Update current data based off of stream buffer if data is available
         // Don't block - if data isn't available keep going with what we currently have
-        auto sb_bytes_received = xStreamBufferReceive(communication_stream_buf, &curr_position, sizeof(handdata_t), 0);
-        if(sb_bytes_received) {
-            printf("Receieved %d bytes from SB\n", sb_bytes_received);
+        auto mb_bytes_received = xMessageBufferReceive(communication_message_buf, &curr_position, sizeof(handdata_t), 0);
+        if(mb_bytes_received) {
+            printf("Receieved %d bytes from SB\n", mb_bytes_received);
+            printf("Setting target position to to %f, %f, %f, wrist to %f and openness to %f\n", curr_position.x, curr_position.y, curr_position.z, curr_position.pitch, curr_position.openness);
+            min_sqrt_normed_err = (float)__FLT_MAX__; // Reset the error if new coordinate received
         }
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
         // Q0 = Q_prev.array();
@@ -161,15 +163,21 @@ int RobotArm_Task(void *pvParameters) {
         // float Tn_xyz[3] = {20.0f, 0.0f, 20.0f};
         // float Tn_xyz[3] = {4000.0f, 0.0f, 4000.0f};
         // float pitch = 0.0f; // -90 - 90
-        float Tn_xyz[3] = {curr_position.x, curr_position.y, curr_position.z};
+        Vector3f Tn_xyz {{curr_position.x, curr_position.y, curr_position.z}};
         float pitch = curr_position.pitch;
 
         // Rotation done by taking given pitch into account in Y axis (Y-axis rotation is X-axis pitch),
         // then matmul that Y-axis rotation with whichever other rotation we need (ex. Y axis)
+        // https://opentextbooks.clemson.edu/wangrobotics/chapter/forward-kinematics/ section 2.2.4
+        Vector3f Tn_norm = Tn_xyz.normalized(); // We would get angles using tan anyways, so sin and cos of tan is just lengths
+        Matrix3f X_rot {{1, 0, 0}, {0, Tn_norm[1], -Tn_norm[2]}, {0, Tn_norm[2], Tn_norm[1]}};
+        Matrix3f Y_rot {{Tn_norm[0], 0, Tn_norm[2]}, {0, 1, 0}, {-Tn_norm[2], 0, Tn_norm[0]}};
+        Matrix3f Z_rot {{Tn_norm[0], -Tn_norm[1], 0}, {Tn_norm[1], Tn_norm[0], 0}, {0, 0, 1}};
+        Matrix3f rot_matrix = X_rot * Y_rot * Z_rot;
         // Matrix3f X_rot = Identity(4, 4);
-        Tn << 0, 0, 0, Tn_xyz[0], \
-                0, 0, 0, Tn_xyz[1], \ 
-                0, 0, 0, Tn_xyz[2], \
+        Tn << rot_matrix(0, 0), rot_matrix(0, 1), rot_matrix(0, 2), Tn_xyz[0], \
+                rot_matrix(1, 0), rot_matrix(1, 1), rot_matrix(1, 2), Tn_xyz[1], \ 
+                rot_matrix(2, 0), rot_matrix(2, 1), rot_matrix(2, 2), Tn_xyz[2], \
                 0, 0, 0, 1;
 
         // R->print();
@@ -229,17 +237,17 @@ int RobotArm_Task(void *pvParameters) {
         // }
         // printf("\n");
         
-        printf("IK finished!\n");
+        // printf("IK finished!\n");
 
         
-        printf("Commanded transform (Tn):\n");
-        for (int i = 0; i < Tn.rows(); i++) {
-            for (int j = 0; j < Tn.cols(); j++) {
-                printf("%f ", Tn(i, j));
-            }
-            printf("\n");
-        }
-
+        // printf("Commanded transform (Tn):\n");
+        // for (int i = 0; i < Tn.rows(); i++) {
+        //     for (int j = 0; j < Tn.cols(); j++) {
+        //         printf("%f ", Tn(i, j));
+        //     }
+        //     printf("\n");
+        // }
+        //
         Matrix4f T_fk;
         R->FKn(Q_star.col(0), T_fk);
 
@@ -254,9 +262,9 @@ int RobotArm_Task(void *pvParameters) {
         //     normed_error += i * i; // Squared error
         // }
         // normed_error = (Tn(0, 3) * Q_star(0, 0))
-        printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
+        // printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
 
-        printf("\n");
+        // printf("\n");
 
         
 
@@ -270,11 +278,11 @@ int RobotArm_Task(void *pvParameters) {
         //     printf("\n");
         // }
 
-        printf("Best joint angles so far:\n");
-        for(auto i : min_err_joint_angles) {
-            printf("%f \n", i);
-        }
-        printf("\n");
+        // printf("Best joint angles so far:\n");
+        // for(auto i : min_err_joint_angles) {
+        //     printf("%f \n", i);
+        // }
+        // printf("\n");
         //
         // R->FKn(min_err_joint_angles, T_fk);
         // printf("FK transformation matrix of best angles (T_fk):\n");
@@ -285,22 +293,23 @@ int RobotArm_Task(void *pvParameters) {
         //     printf("\n");
         // }
 
-        printf("Total time taken: %d ms\n", endTime - startTime);
+        // printf("Total time taken: %d ms\n", endTime - startTime);
 
-        if(sqrtf(normed_error) < min_sqrt_normed_err) {
-            min_sqrt_normed_err = sqrtf(normed_error);
-            min_err_joint_angles = Q_star.col(0);
-
-            
-        }
+        // if(sqrtf(normed_error) < min_sqrt_normed_err) {
+        //     min_sqrt_normed_err = sqrtf(normed_error);
+        //     min_err_joint_angles = Q_star.col(0);
+        //
+        //
+        // }
+        min_err_joint_angles = Q_star.col(0);
 
         // printf("Applying this transform because the error is least so far\n");
         base.setAngleRad(min_err_joint_angles(0, 0));
         arm1.setAngleRad(min_err_joint_angles(1, 0));
-        arm2.setAngleRad(min_err_joint_angles(2, 0), true);
+        arm2.setAngleRad(min_err_joint_angles(2, 0));
         // base.setAngleRad(0);
         // arm1.setAngleDegrees(0);
-        // arm2.setAngleRad(0, true);
+        // arm2.setAngleRad(0);
         wrist.setAngleDegrees(pitch);
         float gripper_angle = 90.0*(1 - (curr_position.openness/100.0));
         gripper.setAngleDegrees(gripper_angle);

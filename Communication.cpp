@@ -11,15 +11,15 @@
 // #include "projdefs.h"
 // #include "robot.pb.h"
 
-StreamBufferHandle_t communication_stream_buf = NULL;
+MessageBufferHandle_t communication_message_buf = NULL;
 
 static int decode_message(uint8_t in_buffer[INPUT_BUFFER_SIZE], size_t message_size_bytes, handdata_t *data_struct) {
     pb_istream_t istream = pb_istream_from_buffer(in_buffer, message_size_bytes);
     
-    auto startTime = to_ms_since_boot(get_absolute_time());
+    auto startTime = pdTICKS_TO_MS(xTaskGetTickCount());
     handtracking_HandData message = handtracking_HandData_init_zero; // Allocate stack space
     auto status = pb_decode(&istream, handtracking_HandData_fields, &message);
-    auto endTime = to_ms_since_boot(get_absolute_time());
+    auto endTime = pdTICKS_TO_MS(xTaskGetTickCount());
     if(!status) {
         printf("Error decoding protobuf message: %s\n", istream.errmsg);
         goto decode_return;
@@ -47,7 +47,7 @@ void Decode_Task(void *pvParameters) {
     
     // Set up stream buffer
     // The stream buffer is an RTOS-controlled buffer to handle sending data between threads (this to IK thread)
-    communication_stream_buf = xStreamBufferCreate(HANDDATA_SB_SIZE, sizeof(handdata_t));
+    communication_message_buf = xMessageBufferCreate(HANDDATA_SB_SIZE);
 
     // Wait until UART available, sleep block if not 
     while(!stdio_usb_connected()) {
@@ -92,9 +92,9 @@ void Decode_Task(void *pvParameters) {
 
         // printf("Handdata timestamp: %f\n", handdata_temp.timestamp);
 
-        auto sb_status = xStreamBufferSend(communication_stream_buf, &handdata_temp, sizeof(handdata_t), 0);
-        if(!sb_status) {
-            printf("Error sending message thru stream buffer, status %d\n", sb_status);
+        auto mb_status = xMessageBufferSend(communication_message_buf, &handdata_temp, sizeof(handdata_t), 0);
+        if(!mb_status) {
+            printf("Error sending message thru stream buffer, status %d\n", mb_status);
         }
     }
 }
