@@ -1,0 +1,9 @@
+name: Senior-Design
+channels:
+  - defaults
+dependencies:
+  - opencv
+  - python=3.12.12
+  - mypy=1.17.1
+  - tk=8.6.15
+prefix: /opt/miniconda3/envs/Senior-Design

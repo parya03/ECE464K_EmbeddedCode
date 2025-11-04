@@ -24,12 +24,13 @@ static int decode_message(uint8_t in_buffer[INPUT_BUFFER_SIZE], size_t message_s
         printf("Error decoding protobuf message: %s\n", istream.errmsg);
         goto decode_return;
     }                                                                         
-    printf("Protobuf decode: Total time taken: %d ms\n", endTime - startTime);
+    // printf("Protobuf decode: Total time taken: %d ms\n", endTime - startTime);
 
 
+    // TODO we changed X and Y on this end
     data_struct->timestamp = message.timestamp;
-    data_struct->x = message.x;
-    data_struct->y = message.y;
+    data_struct->y = message.x;
+    data_struct->x = message.y;
     data_struct->z = message.z;
     data_struct->openness = message.openness;
     data_struct->pitch = message.pitch;
@@ -67,7 +68,7 @@ void Decode_Task(void *pvParameters) {
             vTaskDelay(pdMS_TO_TICKS(DATA_INPUT_TIME_MS));
             continue; // Still no input so start again
         }
-        printf("Hit\n");
+        // printf("Hit\n");
         while(input_data[input_data_size] != PICO_ERROR_TIMEOUT) {
             input_data_size++;
             if(input_data_size >= INPUT_BUFFER_SIZE) {
@@ -82,7 +83,7 @@ void Decode_Task(void *pvParameters) {
             input_data[input_data_size] = stdio_getchar_timeout_us(2000); // Wait a ms for new chars since serial baud rate may be slow
         }
 
-        printf("USB input size: %d\n", input_data_size);
+        // printf("USB input size: %d\n", input_data_size);
 
         auto status = decode_message(reinterpret_cast<uint8_t *>(input_data), input_data_size, &handdata_temp);
         if(!status) {
