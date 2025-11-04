@@ -61,15 +61,15 @@ auto R = std::make_shared<quik::Robot<3>>(
 // Define the IK options
 const quik::IKSolver<3> IKS(
     R, // The robot object (pointer)
-    200, // max number of iterations
+    50, // max number of iterations
     quik::ALGORITHM_QUIK, // quik::ALGORITHM_QUIK, // algorithm (ALGORITHM_QUIK, ALGORITHM_NR or ALGORITHM_BFGS)
     1e-12, // Exit tolerance
     1e-14, // Minimum step tolerance
     0.005, // iteration-to-iteration improvement tolerance (0.05 = 5% relative improvement)
     10, // max consequitive gradient fails
     80, // Max gradient fails
-    1e-10, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
-    0.07, // 0.34, // Max linear error step
+    0, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
+    0.34, // 0.34, // Max linear error step
     1 // Max angular error step
 );
 
@@ -161,7 +161,7 @@ int RobotArm_Task(void *pvParameters) {
         // }
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
         // Q0 = Q_prev.array();
-        Q0 = Q_prev.array() + 0.01;
+        // Q0 = Q_prev.array() + 0.01;
         // Q0 = Q_prev;
         // Q0.setZero();
 
@@ -191,7 +191,11 @@ int RobotArm_Task(void *pvParameters) {
         //     0, 0, 0, Tn_xyz[2], \
         //     0, 0, 0, 1;
 
-
+        // Initial guess:
+        // Straight vector from base to point but as joint angles
+        Q0(0) = atan2(Tn_norm[1], Tn_norm[0]); // ∠ base = atan(y length / x length)
+        Q0(1) = atan2(Tn_norm[3], sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1]))); // ∠ arm1 = atan(z / len(x + y vectors))
+        Q0(2) = 0; // Guess that it has zero angle for now
         // R->print();
 
         
@@ -236,12 +240,21 @@ int RobotArm_Task(void *pvParameters) {
         //     printf("\n");
         // }
         // printf("\n");
+        
+        /**
+         * enum BREAKREASON_t : uint8_t {
+            BREAKREASON_TOLERANCE = 0, // Tolerance reached
+            BREAKREASON_MIN_STEP, // minimum step size is reached
+            BREAKREASON_MAX_ITER, // Max iterations reached
+            BREAKREASON_GRAD_FAILS // Gradient failed to improve
+            };
+         **/
 
-        // printf("Break reason is:\n");
-        // for (const auto& reason : breakReason) {
-        //     printf("%d ", reason);
-        // }
-        // printf("\n");
+        printf("Break reason is:\n");
+        for (const auto& reason : breakReason) {
+            printf("%d ", reason);
+        }
+        printf("\n");
 
         // printf("Number of iterations:\n");
         // for (const auto& iter_i : iter) {
@@ -252,23 +265,23 @@ int RobotArm_Task(void *pvParameters) {
         // printf("IK finished!\n");
 
         
-        // printf("Commanded transform (Tn):\n");
-        // for (int i = 0; i < Tn.rows(); i++) {
-        //     for (int j = 0; j < Tn.cols(); j++) {
-        //         printf("%f ", Tn(i, j));
-        //     }
-        //     printf("\n");
-        // }
-        //
-        Matrix4d T_fk;
-        R->FKn(Q_star.col(0), T_fk);
+        printf("Commanded transform (Tn):\n");
+        for (int i = 0; i < Tn.rows(); i++) {
+            for (int j = 0; j < Tn.cols(); j++) {
+                printf("%f ", Tn(i, j));
+            }
+            printf("\n");
+        }
+
+        // Matrix4d T_fk;
+        // R->FKn(Q_star.col(0), T_fk);
 
         VectorXd err_vec = e_star.col(0); // Only one column because only one pose
         // TODO: Define error as purely based on translation position rather than rotation
-        double normed_error = 0.0;
-        normed_error += SQUARE(Tn_xyz[0] - T_fk(0, 3));
-        normed_error += SQUARE(Tn_xyz[1] - T_fk(1, 3));
-        normed_error += SQUARE(Tn_xyz[2] - T_fk(2, 3));
+        // double normed_error = 0.0;
+        // normed_error += SQUARE(Tn_xyz[0] - T_fk(0, 3));
+        // normed_error += SQUARE(Tn_xyz[1] - T_fk(1, 3));
+        // normed_error += SQUARE(Tn_xyz[2] - T_fk(2, 3));
 
         // for (auto i : err_vec) {
         //     normed_error += i * i; // Squared error
@@ -306,7 +319,7 @@ int RobotArm_Task(void *pvParameters) {
         //     printf("\n");
         // }
 
-        // printf("Total time taken: %d ms\n", endTime - startTime);
+        printf("Total time taken: %d ms\n", endTime - startTime);
 
         // if(sqrtf(normed_error) < min_sqrt_normed_err) {
         //     min_sqrt_normed_err = sqrtf(normed_error);
