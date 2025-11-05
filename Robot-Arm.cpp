@@ -31,14 +31,14 @@ using namespace Eigen;
 // This is the DH parameters for the KUKA KR6 robot
 auto R = std::make_shared<quik::Robot<3>>(
 	// Given as DOFx4 table, in the following order: a_i, alpha_i, d_i, theta_i.
-	// (Matrix<float, 3, 4>() <<
-	// 	0,    M_PI/2,        10.22f,       0,
+	(Matrix<double, 3, 4>() <<
+		0,    M_PI/2,        10.22,       0,
+		15.24,   0,         0,            M_PI/2,
+		10.56,   0,    0,           0).finished(),
+    // (Matrix<double, 3, 4>() <<
+	// 	0,    M_PI/2,        6.3,       0,
 	// 	15.24f,   0,         0,            M_PI/2,
-	// 	10.56f,   0,    0,           0).finished(),
-    (Matrix<double, 3, 4>() <<
-		0,    M_PI/2,        6.3,       0,
-		15.24f,   0,         0,            M_PI/2,
-		10.33f,   0,    0,           0).finished(),
+	// 	10.33f,   0,    0,           0).finished(),
 					  
 	// Second argument is a list of joint types
 	// true is prismatic, false is revolute
@@ -160,9 +160,15 @@ int RobotArm_Task(void *pvParameters) {
         // }
         // Perturb true answers slightly to get initial "guess" (knock over by 0.1 radians)
         // Q0 = Q_prev.array();
-        // Q0 = Q_prev.array() + 0.01;
+        Q0 = Q_prev.array() + 0.01;
         // Q0 = Q_prev;
         // Q0.setZero();
+
+        printf("Q0 - %d x %d:\n", Q0.rows(), Q0.cols());
+        for(int i = 0; i < DOF; i++) {
+            printf("%f ", Q0(i));
+        }
+        printf("\n");
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
         // double Tn_xyz[3] = {20.0f, 0.0f, 20.0f};
@@ -192,9 +198,9 @@ int RobotArm_Task(void *pvParameters) {
 
         // Initial guess:
         // Straight vector from base to point but as joint angles
-        Q0(0) = atan2(Tn_norm[1], Tn_norm[0]); // ∠ base = atan(y length / x length)
-        Q0(1) = atan2(Tn_norm[3], sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1]))); // ∠ arm1 = atan(z / len(x + y vectors))
-        Q0(2) = 0; // Guess that it has zero angle for now
+        // Q0(0) = atan2(Tn_norm[1], Tn_norm[0]); // ∠ base = atan(y length / x length)
+        // Q0(1) = atan2(Tn_norm[3], sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1]))); // ∠ arm1 = atan(z / len(x + y vectors))
+        // Q0(2) = 0; // Guess that it has zero angle for now
         // R->print();
 
         
@@ -304,7 +310,7 @@ int RobotArm_Task(void *pvParameters) {
         // }
 
         printf("Best joint angles so far:\n");
-        for(auto i : min_err_joint_angles) {
+        for(auto i :  Q_star.col(0)) {
             printf("%f \n", i);
         }
         printf("\n");
