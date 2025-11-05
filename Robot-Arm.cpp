@@ -34,7 +34,7 @@ auto R = std::make_shared<quik::Robot<3>>(
 	(Matrix<double, 3, 4>() <<
 		0,    M_PI/2,        10.22,       0,
 		15.24,   0,         0,            M_PI/2,
-		10.56,   0,    0,           0).finished(),
+		17.06,   0,    0,           0).finished(), // Includes arm2 and claw (arm2 is 10.56cm, claw is 6.5)
     // (Matrix<double, 3, 4>() <<
 	// 	0,    M_PI/2,        6.3,       0,
 	// 	15.24f,   0,         0,            M_PI/2,
@@ -67,7 +67,7 @@ const quik::IKSolver<3> IKS(
     0.005, // iteration-to-iteration improvement tolerance (0.05 = 5% relative improvement)
     10, // max consequitive gradient fails
     80, // Max gradient fails
-    0, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
+    0.1, // lambda2 (lambda^2, the damping parameter for DQuIK and DNR)
     0.34, // 0.34, // Max linear error step
     1 // Max angular error step
 );
@@ -81,9 +81,9 @@ Vector3d min_err_joint_angles;
 // Updated and recieved from stream buffer
 handdata_t curr_position = {
     .timestamp = 0.0f,
-    .x = 25.0f,
-    .y = 0.0f,
-    .z = 25.0f, // Start basically straight up (zero joint angle)
+    .x = 19.0f,
+    .y = 19.0f,
+    .z = 30.0f, // Start basically straight up (zero joint angle)
     .openness = 0.0f,
     .pitch = 0.0f,
 };
@@ -182,7 +182,9 @@ int RobotArm_Task(void *pvParameters) {
         // https://opentextbooks.clemson.edu/wangrobotics/chapter/forward-kinematics/ section 2.2.4
         Vector3d Tn_norm = Tn_xyz.normalized(); // We would get angles using tan anyways, so sin and cos of tan is just lengths
         Matrix3d X_rot {{1, 0, 0}, {0, Tn_norm[1], -Tn_norm[2]}, {0, Tn_norm[2], Tn_norm[1]}};
+        // Matrix3d X_rot {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
         Matrix3d Y_rot {{Tn_norm[0], 0, Tn_norm[2]}, {0, 1, 0}, {-Tn_norm[2], 0, Tn_norm[0]}};
+        // Matrix3d Y_rot {{0, 0, 1}, {0, 1, 0}, {-1, 0, 0}};
         Matrix3d Z_rot {{Tn_norm[0], -Tn_norm[1], 0}, {Tn_norm[1], Tn_norm[0], 0}, {0, 0, 1}};
         Matrix3d rot_matrix = X_rot * Y_rot * Z_rot;
         // Matrix3d X_rot = Identity(4, 4);

@@ -141,9 +141,6 @@ class Servo {
 
                 if(rel_angle_deg > 90 && rel_angle_deg <= 180) {
                     rel_angle_deg = 90;
-                    if(isArm2) {
-                        rel_angle_deg = 70;
-                    }
                 }
 
                 if(rel_angle_deg >= -180 && rel_angle_deg < -90) {
@@ -152,9 +149,6 @@ class Servo {
 
                 if(rel_angle_deg >= -270 && rel_angle_deg < -180) {
                     rel_angle_deg = 90;
-                    if(isArm2) {
-                        rel_angle_deg = 70;
-                    }
                 }
             }
             // if(rel_angle_deg < 0) {

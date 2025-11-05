@@ -4,9 +4,9 @@ import serial
 import robot_pb2 # generated from handdatainates.proto
 
 # ---------------- Configuration ----------------
-SERIAL_PORT = "/dev/ttyACM0"  # Change as needed (e.g. COM3 on Windows)
+SERIAL_PORT = "/dev/tty.usbmodem101"  # Change as needed (e.g. COM3 on Windows)
 BAUD_RATE = 115200
-SEND_INTERVAL = 0.5  # 20 ms
+SEND_INTERVAL = 0.08  # 20 ms
 
 # ---------------- Serial Setup ----------------
 ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=0.1)
@@ -26,7 +26,7 @@ reader_thread.start()
 def send_handdatainates_loop():
     handdata = robot_pb2.HandData() 
 
-    x, y, z = 0.0, 15.0, 15.0
+    x, y, z = 0.0, 10.0, 10.0
     while True:
         # Update coordinates here however you like:
         x += 1
