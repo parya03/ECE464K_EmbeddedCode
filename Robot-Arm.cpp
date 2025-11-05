@@ -35,11 +35,10 @@ auto R = std::make_shared<quik::Robot<3>>(
 	// 	0,    M_PI/2,        10.22f,       0,
 	// 	15.24f,   0,         0,            M_PI/2,
 	// 	10.56f,   0,    0,           0).finished(),
-    (Matrix<float, 4, 4>() <<
+    (Matrix<double, 3, 4>() <<
 		0,    M_PI/2,        6.3,       0,
 		15.24f,   0,         0,            M_PI/2,
-		10.33f,   0,    0,           0,
-        4.43 , 0, 0, 0).finished(),
+		10.33f,   0,    0,           0).finished(),
 					  
 	// Second argument is a list of joint types
 	// true is prismatic, false is revolute
