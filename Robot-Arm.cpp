@@ -81,9 +81,9 @@ Vector3d min_err_joint_angles;
 // Updated and recieved from stream buffer
 handdata_t curr_position = {
     .timestamp = 0.0f,
-    .x = 10.0f,
+    .x = 25.0f,
     .y = 0.0f,
-    .z = 10.0f, // Start basically straight up (zero joint angle)
+    .z = 25.0f, // Start basically straight up (zero joint angle)
     .openness = 0.0f,
     .pitch = 0.0f,
 };
@@ -198,11 +198,14 @@ int RobotArm_Task(void *pvParameters) {
 
         // Initial guess:
         // Straight vector from base to point but as joint angles
-        // Q0(0) = atan2(Tn_norm[1], Tn_norm[0]); // ∠ base = atan(y length / x length)
-        // Q0(1) = atan2(Tn_norm[3], sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1]))); // ∠ arm1 = atan(z / len(x + y vectors))
-        // Q0(2) = 0; // Guess that it has zero angle for now
+        // Add a small perturbation or the library will return NaN
+        printf("Tn_norm: %f, %f, %f\n", Tn_norm[0], Tn_norm[1], Tn_norm[2]);
+        // Q0(0) = atan2(Tn_norm[1], Tn_norm[0]) + 0.01; // ∠ base = atan(y length / x length)
+        // Q0(1) = atan2(Tn_norm[2], sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1]))) + 0.01; // ∠ arm1 = atan(z / len(x + y vectors))
+        // Q0(2) = 0 + 0.01; // Guess that it has zero angle for now
         // R->print();
 
+        printf("Q0: %f %f %f, sqrt is %f\n", Q0(0), Q0(1), Q0(2), sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1])));
         
         // sleep_ms(1000);
         
@@ -310,7 +313,7 @@ int RobotArm_Task(void *pvParameters) {
         // }
 
         printf("Best joint angles so far:\n");
-        for(auto i :  Q_star.col(0)) {
+        for(auto i : Q_star.col(0)) {
             printf("%f \n", i);
         }
         printf("\n");
