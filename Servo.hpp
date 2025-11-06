@@ -111,14 +111,17 @@ class Servo {
             setAngleDegrees(0.0f);
         }
 
-        void setAngleRad(float angle_rad) {
+        int setAngleRad(float angle_rad) {
             float angle_deg = (angle_rad / EIGEN_PI) * 180.0f;
 
-            setAngleDegrees(angle_deg);
+            return setAngleDegrees(angle_deg);
         }
 
         // Total Angle = -180 - 180 taking offset into account
-        void setAngleDegrees(float angle, bool isArm2=false) {
+        // Return: 0 if no error, 1 if commanded angle was not able to be done by the motor
+        int setAngleDegrees(float angle, bool isArm2=false) {
+            int retval = 0;
+
             rel_angle_deg = angle + zero_angle_offset_degrees;
 
             // printf("Angle requested: %f deg, after adding offset: %f deg\n", angle, rel_angle_deg);
@@ -133,8 +136,11 @@ class Servo {
             else if(rel_angle_deg <= -270.0f && rel_angle_deg >= -360.0f){
                 rel_angle_deg += 360.0f;
             }
-            else {
+            else if(rel_angle_deg < -90 || rel_angle_deg > 90) {
                 // Not a valid angle -> cap it
+                
+                retval = 1; // Error: Not able to reach specified angle
+
                 if(rel_angle_deg > 180 && rel_angle_deg < 270) {
                     rel_angle_deg = -90;
                 }
@@ -169,5 +175,7 @@ class Servo {
 
             curr_pwm_pw = inverted ? 1500 + (rel_angle_deg * US_PER_DEGREE) : 1500 - (rel_angle_deg * US_PER_DEGREE);
             pwm_set_chan_level(slice_num, channel, curr_pwm_pw);
+
+            return retval;
         }
 };

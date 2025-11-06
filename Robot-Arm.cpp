@@ -6,6 +6,7 @@
 // #include <chrono>
 #include "Eigen/Dense"
 #include <math.h>
+#include <sys/cdefs.h>
 #include "projdefs.h"
 #include "quik/geometry.hpp"
 #include "quik/Robot.hpp"
@@ -81,9 +82,9 @@ Vector3d min_err_joint_angles;
 // Updated and recieved from stream buffer
 handdata_t curr_position = {
     .timestamp = 0.0f,
-    .x = 19.0f,
-    .y = 19.0f,
-    .z = 30.0f, // Start basically straight up (zero joint angle)
+    .x = 18.0f,
+    .y = 0.0f,
+    .z = 25.0f, // Start basically straight up (zero joint angle)
     .openness = 0.0f,
     .pitch = 0.0f,
 };
@@ -129,8 +130,11 @@ int RobotArm_Task(void *pvParameters) {
     //     gripper.zero();
     // }
 
-    Matrix<double,3,Dynamic> Q_prev;
-    Q_prev.setRandom(R->dof, 1);
+    Vector3d Q_prev(3.14, -3.26, 3.76);
+    // Matrix3d Q_prev {{3.6}, {-1.6}, {3.14}};
+    // Q_prev.setRandom(R->dof, 1);
+    // Q_prev.setRandom();
+    // Q_prev << 3.6, -1.6, 3.14; // Give a bad initial guess for testing
 
     printf("PWM started\n");
 
@@ -339,26 +343,34 @@ int RobotArm_Task(void *pvParameters) {
         // }
         min_err_joint_angles = Q_star.col(0);
 
+        int error = 0; // Are we able to reach the specified angles?
         // printf("Applying this transform because the error is least so far\n");
-        base.setAngleRad(min_err_joint_angles(0, 0));
-        arm1.setAngleRad(min_err_joint_angles(1, 0));
-        arm2.setAngleRad(min_err_joint_angles(2, 0));
+        error |= base.setAngleRad(min_err_joint_angles(0, 0));
+        error |= arm1.setAngleRad(min_err_joint_angles(1, 0));
+        error |= arm2.setAngleRad(min_err_joint_angles(2, 0));
         // base.setAngleRad(0);
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
         wrist.setAngleDegrees(pitch);
         double gripper_angle = 90.0*(1 - (curr_position.openness/100.0));
         gripper.setAngleDegrees(gripper_angle);
-
+        
         // base.print();
         // arm1.print();
         // arm2.print();
 
         Q_prev = Q_star;
+        
+        if(error) {
+            printf("Could not reach specified joint angles - randomizing initial guess for next run\n");
+
+            Q_prev.setRandom();
+        }
 
         // sleep_ms(1000);
     }
 	
+    __unreachable();
 	return 0;
 }
 
