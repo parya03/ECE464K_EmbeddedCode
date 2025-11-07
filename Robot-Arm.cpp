@@ -356,15 +356,23 @@ int RobotArm_Task(void *pvParameters) {
 
         int error = 0; // Are we able to reach the specified angles?
         // printf("Applying this transform because the error is least so far\n");
-        error |= base.setAngleRad(min_err_joint_angles(0, 0));
-        error |= arm1.setAngleRad(min_err_joint_angles(1, 0));
-        error |= arm2.setAngleRad(min_err_joint_angles(2, 0));
+        // error |= base.setAngleRad(min_err_joint_angles(0, 0));
+        // error |= arm1.setAngleRad(min_err_joint_angles(1, 0));
+        // error |= arm2.setAngleRad(min_err_joint_angles(2, 0));
         // base.setAngleRad(0);
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
-        wrist.setAngleDegrees(pitch);
+        
+        error |= base.checkValidAngleDegrees(min_err_joint_angles(0, 0));
+        error |= arm1.checkValidAngleDegrees(min_err_joint_angles(1, 0));
+        error |= arm2.checkValidAngleDegrees(min_err_joint_angles(2, 0));
+
+        // wrist.setAngleDegrees(pitch);
         double gripper_angle = 90.0*(1 - (curr_position.openness/100.0));
-        gripper.setAngleDegrees(gripper_angle);
+        // gripper.setAngleDegrees(gripper_angle);
+
+        // SHRUTI insert the angle write to the other thread somewhere here
+        
 
         // wrist.setAngleDegrees(0);
         // gripper.setAngleDegrees(0);
