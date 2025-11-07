@@ -22,6 +22,11 @@
 using namespace std;
 using namespace Eigen;
 
+// Motor angles
+// base arm1 arm2 pitch gripper_angle
+float prev_angles[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+float current_angles[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
 /* TODOs
  * Make error take new position into account
  * Fix communication buffer overflow
@@ -89,14 +94,14 @@ handdata_t curr_position = {
     .pitch = 0.0f,
 };
 
+Servo base(2, 0);
+Servo arm1(3, 0, true);
+Servo arm2(4, 90);
+Servo wrist(5, 0);
+Servo gripper(6, 0);  
+
 int RobotArm_Task(void *pvParameters) {
     printf("Robot Arm task started\n");
-
-    Servo base(2, 0);
-    Servo arm1(3, 0, true);
-    Servo arm2(4, 90);
-    Servo wrist(5, 0);
-    Servo gripper(6, 0);    
 
     base.startPWMControllers();
     arm1.startPWMControllers();
@@ -342,6 +347,12 @@ int RobotArm_Task(void *pvParameters) {
         //
         // }
         min_err_joint_angles = Q_star.col(0);
+
+        current_angles[0] = min_err_joint_angles(0, 0); // base angle
+        current_angles[1] = min_err_joint_angles(1, 0); // arm 1 angle
+        current_angles[2] = min_err_joint_angles(2, 0); // arm 2 angle
+        current_angles[3] = pitch;
+        current_angles[4] = 90.0*(1 - (curr_position.openness/100.0));
 
         int error = 0; // Are we able to reach the specified angles?
         // printf("Applying this transform because the error is least so far\n");
