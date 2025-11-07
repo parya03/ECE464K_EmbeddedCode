@@ -110,6 +110,30 @@ class Servo {
         void zero() {
             setAngleDegrees(0.0f);
         }
+        
+        // Return true for valid angle, false for angle that the servo can't reach
+        bool checkValidAngleDegrees(float angle) {
+            rel_angle_deg = angle + zero_angle_offset_degrees;
+
+            // printf("Angle requested: %f deg, after adding offset: %f deg\n", angle, rel_angle_deg);
+
+            rel_angle_deg = fmodf(rel_angle_deg, 360.0f);
+
+            // printf("Angle between -360 to 360: %f deg\n", rel_angle_deg);
+
+            if(rel_angle_deg >= 270.0f && rel_angle_deg <= 360.0f) {
+                rel_angle_deg -= 360.0f;
+            }
+            else if(rel_angle_deg <= -270.0f && rel_angle_deg >= -360.0f){
+                rel_angle_deg += 360.0f;
+            }
+            else if(rel_angle_deg < -90 || rel_angle_deg > 90) {
+                // Not a valid angle -> cap it
+                return false; // Error: Not able to reach specified angle
+            }
+
+            return true;
+        }
 
         int setAngleRad(float angle_rad) {
             float angle_deg = (angle_rad / EIGEN_PI) * 180.0f;
