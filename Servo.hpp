@@ -202,4 +202,52 @@ class Servo {
 
             return retval;
         }
+
+
+        int computePWM(float angle, bool isArm2=false) {
+            int retval = 0;
+
+            rel_angle_deg = angle + zero_angle_offset_degrees;
+
+            // printf("Angle requested: %f deg, after adding offset: %f deg\n", angle, rel_angle_deg);
+
+            rel_angle_deg = fmodf(rel_angle_deg, 360.0f);
+
+            // printf("Angle between -360 to 360: %f deg\n", rel_angle_deg);
+
+            if(rel_angle_deg >= 270.0f && rel_angle_deg <= 360.0f) {
+                rel_angle_deg -= 360.0f;
+            }
+            else if(rel_angle_deg <= -270.0f && rel_angle_deg >= -360.0f){
+                rel_angle_deg += 360.0f;
+            }
+            else if(rel_angle_deg < -90 || rel_angle_deg > 90) {
+                // Not a valid angle -> cap it
+                
+                retval = 1; // Error: Not able to reach specified angle
+
+                if(rel_angle_deg > 180 && rel_angle_deg < 270) {
+                    rel_angle_deg = -90;
+                }
+
+                if(rel_angle_deg > 90 && rel_angle_deg <= 180) {
+                    rel_angle_deg = 90;
+                }
+
+                if(rel_angle_deg >= -180 && rel_angle_deg < -90) {
+                    rel_angle_deg = -90;
+                }
+
+                if(rel_angle_deg >= -270 && rel_angle_deg < -180) {
+                    rel_angle_deg = 90;
+                }
+            }
+
+            return inverted ? 1500 + (rel_angle_deg * US_PER_DEGREE) : 1500 - (rel_angle_deg * US_PER_DEGREE);
+        }
+
+        void setPWM(int pwm) {
+            curr_pwm_pw = pwm;
+            pwm_set_chan_level(slice_num, channel, pwm);
+        }
 };

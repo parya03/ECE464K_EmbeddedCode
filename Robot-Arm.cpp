@@ -16,16 +16,21 @@
 #include "robot.pb.h"
 #include "stream_buffer.h"
 #include "Communication.hpp"
+#include <queue>
+#include <array>
+
 
 #define SQUARE(x) ((x) * (x))
 
 using namespace std;
 using namespace Eigen;
 
+using JointArray = std::array<float, 5>;
+
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
-float prev_angles[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-float current_angles[5] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+JointArray current_angles{};
+std::queue<JointArray> motor_angles_queue;
 
 /* TODOs
  * Make error take new position into account
@@ -100,7 +105,7 @@ Servo arm2(4, 90);
 Servo wrist(5, 0);
 Servo gripper(6, 0);  
 
-int RobotArm_Task(void *pvParameters) {
+void RobotArm_Task(void *pvParameters) {
     printf("Robot Arm task started\n");
 
     base.startPWMControllers();
@@ -352,7 +357,9 @@ int RobotArm_Task(void *pvParameters) {
         current_angles[1] = min_err_joint_angles(1, 0); // arm 1 angle
         current_angles[2] = min_err_joint_angles(2, 0); // arm 2 angle
         current_angles[3] = pitch;
-        current_angles[4] = 90.0*(1 - (curr_position.openness/100.0));
+        float gripper_angle= 90.0*(1 - (curr_position.openness/100.0));
+        current_angles[4] = gripper_angle;
+        motor_angles_queue.push(current_angles);
 
         int error = 0; // Are we able to reach the specified angles?
         // printf("Applying this transform because the error is least so far\n");
@@ -368,7 +375,7 @@ int RobotArm_Task(void *pvParameters) {
         error |= arm2.checkValidAngleDegrees(min_err_joint_angles(2, 0));
 
         // wrist.setAngleDegrees(pitch);
-        double gripper_angle = 90.0*(1 - (curr_position.openness/100.0));
+        //double gripper_angle = 90.0*(1 - (curr_position.openness/100.0));
         // gripper.setAngleDegrees(gripper_angle);
 
         // SHRUTI insert the angle write to the other thread somewhere here
@@ -393,6 +400,6 @@ int RobotArm_Task(void *pvParameters) {
     }
 	
     __unreachable();
-	return 0;
+	//return 0;
 }
 
