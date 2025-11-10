@@ -30,6 +30,7 @@ using JointArrayInt = std::array<int, 5>;
 // base arm1 arm2 pitch gripper_angle
 JointArrayInt prev_pwm{500, 500, 500, 500, 500};
 extern std::queue<JointArray> motor_angles_queue;
+extern JointArray current_angles{};
 
 extern Servo base;
 extern Servo arm1;
@@ -41,14 +42,14 @@ Servo motors[5] = {base, arm1, arm2, wrist, gripper};
 
 void MotorUpdate() {
     printf("thread for motors\n");
-    JointArray curr_angles = motor_angles_queue.front();
+    // JointArray curr_angles = motor_angles_queue.front();
     bool converged[5] = {false, false, false, false, false};
 
     printf("=======================================\n");
     
     for(int i = 0; i < 5; i++) {
         Servo motor = motors[i];
-        int pwm = motor.computePWM(curr_angles[i]);
+        int pwm = motor.computePWM(current_angles[i]);
         int diff = prev_pwm[i] - pwm;
         if(diff > 0) {
             if(diff > 10) {
@@ -93,7 +94,7 @@ void MotorUpdate() {
     
     // if all converged to desired angle, pop from queue
     if(allMotorsConverged){
-        motor_angles_queue.pop();
+        //motor_angles_queue.pop();
         printf("\nCONVERGENCE COMPLETE, POPPED NEW!\n\n");
     }
 }
