@@ -58,8 +58,8 @@ int main() {
     vTaskCoreAffinitySet(RobotArm_Task_handle, 0x2); // Run this on second core exclusively
     xTaskCreate(Decode_Task, "Decode-Task", 10240, NULL, 1, &Decode_Task_handle);
     vTaskCoreAffinitySet(Decode_Task_handle, 0x1); // Run this on first core exclusively
-    xTaskCreate(MotorControl_Task, "MotorSweep-Task", 10240, NULL, 1, &PWM_Sweep_handle);
-    vTaskCoreAffinitySet(PWM_Sweep_handle, 0x1);
+    // xTaskCreate(MotorControl_Task, "MotorSweep-Task", 10240, NULL, 1, &PWM_Sweep_handle);
+    // vTaskCoreAffinitySet(PWM_Sweep_handle, 0x1);
     
                                                      
     vTaskStartScheduler();
