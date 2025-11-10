@@ -28,9 +28,9 @@ using JointArrayInt = std::array<int, 5>;
 
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
-JointArrayInt prev_pwm{500, 500, 500, 500, 500};
+JointArrayInt prev_pwm{1500, 1500, 1500, 1500, 1500};
 extern std::queue<JointArray> motor_angles_queue;
-extern JointArray current_angles{};
+extern JointArray current_angles;
 
 extern Servo base;
 extern Servo arm1;
@@ -50,9 +50,10 @@ void MotorUpdate() {
     for(int i = 0; i < 5; i++) {
         Servo motor = motors[i];
         int pwm = motor.computePWM(current_angles[i]);
+        printf("Joint angle for motor %d: %f\n", i, current_angles[i]);
         int diff = prev_pwm[i] - pwm;
         if(diff > 0) {
-            if(diff > 10) {
+            if(diff > STEP_SIZE) {
                 motor.setPWM(prev_pwm[i] - STEP_SIZE);
                 prev_pwm[i] = prev_pwm[i] - STEP_SIZE;
             }
@@ -64,7 +65,7 @@ void MotorUpdate() {
             printf("DECREMENT: Prev pwm: %d, Current pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
         }
         else if(diff < 0) {
-            if(diff < -10) {
+            if(diff < -STEP_SIZE) {
                 motor.setPWM(prev_pwm[i] + STEP_SIZE);
                 prev_pwm[i] = prev_pwm[i] + STEP_SIZE;
             }
@@ -94,7 +95,7 @@ void MotorUpdate() {
     
     // if all converged to desired angle, pop from queue
     if(allMotorsConverged){
-        //motor_angles_queue.pop();
-        printf("\nCONVERGENCE COMPLETE, POPPED NEW!\n\n");
+        // motor_angles_queue.pop();
+        printf("\nCONVERGENCE COMPLETED FOR ALL MOTORS!!\n\n");
     }
 }

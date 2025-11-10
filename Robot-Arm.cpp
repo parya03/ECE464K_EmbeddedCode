@@ -29,7 +29,7 @@ using JointArray = std::array<float, 5>;
 
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
-JointArray current_angles{};
+JointArray current_angles;
 std::queue<JointArray> motor_angles_queue;
 
 /* TODOs
@@ -92,9 +92,9 @@ Vector3d min_err_joint_angles;
 // Updated and recieved from stream buffer
 handdata_t curr_position = {
     .timestamp = 0.0f,
-    .x = 18.0f,
+    .x = 0.0f,
     .y = 0.0f,
-    .z = 25.0f, // Start basically straight up (zero joint angle)
+    .z = 30.0f, // Start basically straight up (zero joint angle)
     .openness = 0.0f,
     .pitch = 0.0f,
 };

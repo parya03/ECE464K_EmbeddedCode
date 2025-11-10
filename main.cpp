@@ -8,7 +8,7 @@
 #include "hardware/pwm.h"
 #include <iostream>
 #include "Communication.hpp"
-#include "Motor-Controller.cpp"
+#include "Motor-Controller.hpp"
 
 // #include <iostream>
 
