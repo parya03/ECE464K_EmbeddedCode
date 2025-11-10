@@ -21,13 +21,14 @@
 #include <queue>
 #include <array>
 
+#define STEP_SIZE 10
 
 using JointArray = std::array<float, 5>;
-using JointArrayInt = std::array<float, 5>;
+using JointArrayInt = std::array<int, 5>;
 
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
-JointArrayInt prev_pwm{0, 0, 0, 0, 0};
+JointArrayInt prev_pwm{500, 500, 500, 500, 500};
 extern std::queue<JointArray> motor_angles_queue;
 
 extern Servo base;
@@ -43,24 +44,38 @@ void MotorUpdate() {
     JointArray curr_angles = motor_angles_queue.front();
     bool converged[5] = {false, false, false, false, false};
 
+    printf("=======================================\n");
     
     for(int i = 0; i < 5; i++) {
         Servo motor = motors[i];
         int pwm = motor.computePWM(curr_angles[i]);
-        if(prev_pwm[i] > pwm) {
-            motor.setPWM(prev_pwm[i] - 1);
-            prev_pwm[i] = prev_pwm[i] - 1;
-            printf("DECREMENET: Prev angle: %f, Current angle: %f for motor %d\n", prev_pwm[i], curr_angles[i], i);
+        int diff = prev_pwm[i] - pwm;
+        if(diff > 0) {
+            if(diff > 10) {
+                motor.setPWM(prev_pwm[i] - STEP_SIZE);
+                prev_pwm[i] = prev_pwm[i] - STEP_SIZE;
+            }
+            else {
+                motor.setPWM(prev_pwm[i] - diff);
+                prev_pwm[i] = prev_pwm[i] - diff;
+            }
+            
+            printf("DECREMENT: Prev pwm: %d, Current pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
         }
-        else if(prev_pwm[i] < pwm) {
-            motor.setPWM(prev_pwm[i] + 1);
-            prev_pwm[i] = prev_pwm[i] + 1;
-            printf("INCREMENT: Prev angle: %f, Current angle: %f for motor %d\n", prev_pwm[i], curr_angles[i], i);
+        else if(diff < 0) {
+            if(diff < -10) {
+                motor.setPWM(prev_pwm[i] + STEP_SIZE);
+                prev_pwm[i] = prev_pwm[i] + STEP_SIZE;
+            }
+            else {
+                motor.setPWM(prev_pwm[i] - diff);
+                prev_pwm[i] = prev_pwm[i] - diff;
+            }
+            printf("INCREMENT: Prev pwm: %d, Current pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
         }
         else {
             // angle converged to given angle
             converged[i] = true;
-            printf("Angle converged for motor %d\n", i);
         }
 
     }
@@ -70,6 +85,9 @@ void MotorUpdate() {
     for(int i = 0; i < 5; i++) {
         if(converged[i] == false) {
             allMotorsConverged = false;
+        }
+        else {
+            printf("Angle converged for motor %d\n", i);
         }
     }
     
