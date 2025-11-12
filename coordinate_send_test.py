@@ -4,7 +4,7 @@ import serial
 import robot_pb2 # generated from handdatainates.proto
 
 # ---------------- Configuration ----------------
-SERIAL_PORT = "COM4"  # Change as needed (e.g. COM3 on Windows)
+SERIAL_PORT = "/dev/tty.usbmodem101"  # Change as needed (e.g. COM3 on Windows)
 BAUD_RATE = 115200
 SEND_INTERVAL = 0.08  # 20 ms
 
