@@ -111,6 +111,13 @@ class Servo {
             setAngleDegrees(0.0f);
         }
         
+
+        bool checkValidAngleRad(float angle_rad) {
+            float angle_deg = (angle_rad / EIGEN_PI) * 180.0f;
+
+            return checkValidAngleDegrees(angle_deg);
+        }
+
         // Return true for valid angle, false for angle that the servo can't reach
         bool checkValidAngleDegrees(float angle) {
             rel_angle_deg = angle + zero_angle_offset_degrees;
