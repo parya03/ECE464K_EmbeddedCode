@@ -210,8 +210,13 @@ class Servo {
             return retval;
         }
 
+        int computePWMRad(float angle_rad, bool isArm2=false) {
+            float angle_deg = (angle_rad / EIGEN_PI) * 180.0f;
 
-        int computePWM(float angle, bool isArm2=false) {
+            return computePWMDegrees(angle_deg, isArm2);
+        }
+
+        int computePWMDegrees(float angle, bool isArm2=false) {
             int retval = 0;
 
             rel_angle_deg = angle + zero_angle_offset_degrees;

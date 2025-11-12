@@ -25,7 +25,7 @@
 using namespace std;
 using namespace Eigen;
 
-using JointArray = std::array<float, 5>;
+using JointArray = std::array<double, 5>;
 
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
@@ -358,7 +358,7 @@ void RobotArm_Task(void *pvParameters) {
         current_angles[2] = min_err_joint_angles(2, 0); // arm 2 angle
         current_angles[3] = pitch * M_PI/180.0f;
         float gripper_angle= 90.0*(1 - (curr_position.openness/100.0));
-        current_angles[4] = gripper_angle * M_PI/180.0f;;
+        current_angles[4] = gripper_angle * M_PI/180.0f;
         //motor_angles_queue.push(current_angles);
 
         int error = 0; // Are we able to reach the specified angles?
