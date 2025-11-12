@@ -38,7 +38,7 @@ extern Servo arm2;
 extern Servo wrist;
 extern Servo gripper;
 
-Servo motors[5] = {base, arm1, arm2, wrist, gripper};
+Servo* motors[5] = {&base, &arm1, &arm2, &wrist, &gripper};
 
 void MotorUpdate() {
     printf("thread for motors\n");
@@ -48,7 +48,7 @@ void MotorUpdate() {
     printf("=======================================\n");
     
     for(int i = 0; i < 5; i++) {
-        Servo motor = motors[i];
+        Servo& motor = *motors[i];
         int pwm = motor.computePWM(current_angles[i]);
         printf("Joint angle for motor %d: %f\n", i, current_angles[i]);
         int diff = prev_pwm[i] - pwm;
