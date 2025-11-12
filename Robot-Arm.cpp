@@ -370,9 +370,9 @@ void RobotArm_Task(void *pvParameters) {
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
         
-        error |= base.checkValidAngleDegrees(min_err_joint_angles(0, 0));
-        error |= arm1.checkValidAngleDegrees(min_err_joint_angles(1, 0));
-        error |= arm2.checkValidAngleDegrees(min_err_joint_angles(2, 0));
+        error |= base.checkValidAngleRad(min_err_joint_angles(0, 0));
+        error |= arm1.checkValidAngleRad(min_err_joint_angles(1, 0));
+        error |= arm2.checkValidAngleRad(min_err_joint_angles(2, 0));
 
         // wrist.setAngleDegrees(pitch);
         //double gripper_angle = 90.0*(1 - (curr_position.openness/100.0));
