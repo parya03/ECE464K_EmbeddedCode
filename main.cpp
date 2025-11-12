@@ -16,7 +16,9 @@
 #include "task.h"
 
 void vApplicationMallocFailedHook(void) {
-    __asm("nop");
+    while(1) {
+        __asm("nop");
+    }
 }
 
 #define MOTOR_CTRL_PERIOD_MS 10   // run every 10 ms

@@ -18,7 +18,7 @@
 #include "Communication.hpp"
 #include <algorithm>
 #include "Eigen/Dense"
-#include <queue>
+// #include <queue>
 #include <array>
 
 #define STEP_SIZE 10
@@ -32,7 +32,7 @@ using JointArrayInt = std::array<int, 5>;
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
 JointArrayInt prev_pwm{1500, 1500, 1500, 1500, 1500};
-extern std::queue<JointArray> motor_angles_queue;
+// extern std::queue<JointArray> motor_angles_queue;
 extern JointArray current_angles;
 
 extern Servo base;

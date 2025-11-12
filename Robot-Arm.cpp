@@ -16,7 +16,7 @@
 #include "robot.pb.h"
 #include "stream_buffer.h"
 #include "Communication.hpp"
-#include <queue>
+// #include <queue>
 #include <array>
 
 
@@ -30,7 +30,7 @@ using JointArray = std::array<double, 5>;
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
 JointArray current_angles;
-std::queue<JointArray> motor_angles_queue;
+// std::queue<JointArray> motor_angles_queue;
 
 /* TODOs
  * Make error take new position into account
@@ -228,14 +228,14 @@ void RobotArm_Task(void *pvParameters) {
         // printf("Hit\n");
         // Start a timer, to get time
         // auto startTime = chrono::high_resolution_clock::now();
-        auto startTime = pdTICKS_TO_MS(xTaskGetTickCount());
+        volatile auto startTime = pdTICKS_TO_MS(xTaskGetTickCount());
 
         // Solve using the IK function, store results in Q_star, e_star, iter and breakreason
         IKS.IK(Tn, Q0, Q_star, e_star, iter, breakReason);
 
         // Get the time after calling the IK function
         // chrono::duration<double, std::micro> elapsed = chrono::high_resolution_clock::now() - startTime;
-        auto endTime = pdTICKS_TO_MS(xTaskGetTickCount());
+        volatile auto endTime = pdTICKS_TO_MS(xTaskGetTickCount());
 
         // Print out results
         // printf("Joint angles (start):\n");
@@ -367,9 +367,9 @@ void RobotArm_Task(void *pvParameters) {
         // arm1.setAngleDegrees(0);
         // arm2.setAngleRad(0);
         
-        error |= base.checkValidAngleRad(min_err_joint_angles(0, 0));
-        error |= arm1.checkValidAngleRad(min_err_joint_angles(1, 0));
-        error |= arm2.checkValidAngleRad(min_err_joint_angles(2, 0));
+        error |= !base.checkValidAngleRad(min_err_joint_angles(0, 0));
+        error |= !arm1.checkValidAngleRad(min_err_joint_angles(1, 0));
+        error |= !arm2.checkValidAngleRad(min_err_joint_angles(2, 0));
 
         // SHRUTI insert the angle write to the other thread somewhere here
         
