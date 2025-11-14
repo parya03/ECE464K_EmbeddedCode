@@ -21,7 +21,7 @@
 // #include <queue>
 #include <array>
 
-#define STEP_SIZE 10
+#define STEP_SIZE 20
 #define STEP_SIZE_MAX 10
 #define STEP_SIZE_MIN 3
 #define LIMIT_TO_DECEL 25
@@ -50,7 +50,7 @@ void MotorUpdate() {
 
     // printf("=======================================\n");
     
-    for(int i = 0; i < 5; i++) {
+    for(int i = 0; i < 3; i++) {
         Servo& motor = *motors[i];
         int pwm = motor.computePWMRad(current_angles[i]);
         // printf("Joint angle for motor %d: %f\n", i, current_angles[i]);
@@ -60,13 +60,9 @@ void MotorUpdate() {
                 motor.setPWM(prev_pwm[i] - STEP_SIZE);
                 prev_pwm[i] = prev_pwm[i] - STEP_SIZE;
             }
-            else if (diff > STEP_SIZE_MIN) {
-                motor.setPWM(prev_pwm[i] - STEP_SIZE_MIN);
-                prev_pwm[i] = prev_pwm[i] - STEP_SIZE_MIN;
-            }
             else {
-                motor.setPWM(prev_pwm[i] - 1);
-                prev_pwm[i] = prev_pwm[i] - 1;
+                motor.setPWM(prev_pwm[i] - diff);
+                prev_pwm[i] = prev_pwm[i] - diff;
             }
             
             // printf("DECREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
@@ -76,13 +72,9 @@ void MotorUpdate() {
                 motor.setPWM(prev_pwm[i] + STEP_SIZE); // -diff
                 prev_pwm[i] = prev_pwm[i] + STEP_SIZE; // -diff
             }
-            else if(diff < -STEP_SIZE_MIN) {
-                motor.setPWM(prev_pwm[i] + STEP_SIZE_MIN); // -diff
-                prev_pwm[i] = prev_pwm[i] + STEP_SIZE_MIN; // - diff
-            }
             else {
-                motor.setPWM(prev_pwm[i] + 1);
-                prev_pwm[i] = prev_pwm[i] + 1;
+                motor.setPWM(prev_pwm[i] - diff);
+                prev_pwm[i] = prev_pwm[i] - diff;
             }
             // printf("INCREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
         }
@@ -95,7 +87,7 @@ void MotorUpdate() {
     // check if all motors converged to the desired angles
     bool allMotorsConverged = true;
 
-    for(int i = 0; i < 5; i++) {
+    for(int i = 0; i < 3; i++) {
         if(converged[i] == false) {
             allMotorsConverged = false;
         }
