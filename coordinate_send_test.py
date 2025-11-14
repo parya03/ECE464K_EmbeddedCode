@@ -4,8 +4,8 @@ import serial
 import robot_pb2 # generated from handdatainates.proto
 
 # ---------------- Configuration ----------------
-SERIAL_PORT = "/dev/tty.usbmodem101"  # Change as needed (e.g. COM3 on Windows)
-BAUD_RATE = 115200
+SERIAL_PORT = "COM4"  # Change as needed (e.g. COM3 on Windows)
+BAUD_RATE = 1000000
 SEND_INTERVAL = 0.08  # 20 ms
 
 # ---------------- Serial Setup ----------------
@@ -33,8 +33,8 @@ def send_handdatainates_loop():
         y += 0
         z += 0
 
-        if(x >= 35):
-            x = -35
+        if(x >= 30):
+            x = -30
 
         # Populate and serialize protobuf message
         handdata.x = x

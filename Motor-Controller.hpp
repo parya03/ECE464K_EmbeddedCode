@@ -23,7 +23,7 @@
 
 #define STEP_SIZE 10
 #define STEP_SIZE_MAX 10
-#define STEP_SIZE_MIN 8
+#define STEP_SIZE_MIN 3
 #define LIMIT_TO_DECEL 25
 
 using JointArray = std::array<double, 5>;
@@ -56,43 +56,35 @@ void MotorUpdate() {
         // printf("Joint angle for motor %d: %f\n", i, current_angles[i]);
         int diff = prev_pwm[i] - pwm;
         if(diff > 0) {
-            if(diff > LIMIT_TO_DECEL) {
-                motor.setPWM(prev_pwm[i] - STEP_SIZE_MAX);
-                prev_pwm[i] = prev_pwm[i] - STEP_SIZE_MAX;
+            if(diff > STEP_SIZE) {
+                motor.setPWM(prev_pwm[i] - STEP_SIZE);
+                prev_pwm[i] = prev_pwm[i] - STEP_SIZE;
+            }
+            else if (diff > STEP_SIZE_MIN) {
+                motor.setPWM(prev_pwm[i] - STEP_SIZE_MIN);
+                prev_pwm[i] = prev_pwm[i] - STEP_SIZE_MIN;
             }
             else {
-                printf("Decelerating\n");
-                if(diff > STEP_SIZE_MIN) {
-                    motor.setPWM(prev_pwm[i] - STEP_SIZE_MIN);
-                    prev_pwm[i] = prev_pwm[i] - STEP_SIZE_MIN;
-                }
-                else {
-                    motor.setPWM(prev_pwm[i] - diff);
-                    prev_pwm[i] = prev_pwm[i] - diff;
-                }
-                
+                motor.setPWM(prev_pwm[i] - 1);
+                prev_pwm[i] = prev_pwm[i] - 1;
             }
             
-            printf("DECREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
+            // printf("DECREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
         }
         else if(diff < 0) {
-            if(diff < -LIMIT_TO_DECEL) {
-                motor.setPWM(prev_pwm[i] + STEP_SIZE_MAX);
-                prev_pwm[i] = prev_pwm[i] + STEP_SIZE_MAX;
+            if(diff < -STEP_SIZE) {
+                motor.setPWM(prev_pwm[i] + STEP_SIZE); // -diff
+                prev_pwm[i] = prev_pwm[i] + STEP_SIZE; // -diff
+            }
+            else if(diff < -STEP_SIZE_MIN) {
+                motor.setPWM(prev_pwm[i] + STEP_SIZE_MIN); // -diff
+                prev_pwm[i] = prev_pwm[i] + STEP_SIZE_MIN; // - diff
             }
             else {
-                printf("Decelerating\n");
-                if(diff < -STEP_SIZE_MIN) {
-                    motor.setPWM(prev_pwm[i] + STEP_SIZE_MIN);
-                    prev_pwm[i] = prev_pwm[i] + STEP_SIZE_MIN;
-                }
-                else {
-                    motor.setPWM(prev_pwm[i] - diff);
-                    prev_pwm[i] = prev_pwm[i] - diff;
-                }
-                
+                motor.setPWM(prev_pwm[i] + 1);
+                prev_pwm[i] = prev_pwm[i] + 1;
             }
-            printf("INCREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
+            // printf("INCREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
         }
         else {
             // angle converged to given angle
@@ -108,7 +100,7 @@ void MotorUpdate() {
             allMotorsConverged = false;
         }
         else {
-            printf("Angle converged for motor %d\n", i);
+            // printf("Angle converged for motor %d\n", i);
         }
     }
     

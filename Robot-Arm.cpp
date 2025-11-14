@@ -92,8 +92,8 @@ Vector3d min_err_joint_angles;
 // Updated and recieved from stream buffer
 handdata_t curr_position = {
     .timestamp = 0.0f,
-    .x = 0.0f,
-    .y = 0.0f,
+    .x = 20.0f,
+    .y = 15.0f,
     .z = 30.0f, // Start basically straight up (zero joint angle)
     .openness = 0.0f,
     .pitch = 0.0f,

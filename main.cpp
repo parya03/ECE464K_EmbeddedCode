@@ -21,7 +21,7 @@ void vApplicationMallocFailedHook(void) {
     }
 }
 
-#define MOTOR_CTRL_PERIOD_MS 10   // run every 10 ms
+#define MOTOR_CTRL_PERIOD_MS 10   // ms
 
 extern void RobotArm_Task(void *pvParameters);
 extern void MotorUpdate();
