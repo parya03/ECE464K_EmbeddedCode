@@ -359,6 +359,9 @@ void RobotArm_Task(void *pvParameters) {
         current_angles[3] = pitch * M_PI/180.0f;
         float gripper_angle= 90.0*(1 - (curr_position.openness/100.0));
         current_angles[4] = gripper_angle * M_PI/180.0f;
+
+        wrist.setAngleDegrees(pitch);
+        gripper.setAngleDegrees(gripper_angle);
         //motor_angles_queue.push(current_angles);
 
         int error = 0; // Are we able to reach the specified angles?
