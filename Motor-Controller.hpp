@@ -60,13 +60,9 @@ void MotorUpdate() {
                 motor.setPWM(prev_pwm[i] - STEP_SIZE);
                 prev_pwm[i] = prev_pwm[i] - STEP_SIZE;
             }
-            else if (diff > STEP_SIZE_MIN) {
-                motor.setPWM(prev_pwm[i] - STEP_SIZE_MIN);
-                prev_pwm[i] = prev_pwm[i] - STEP_SIZE_MIN;
-            }
             else {
-                motor.setPWM(prev_pwm[i] - 1);
-                prev_pwm[i] = prev_pwm[i] - 1;
+                motor.setPWM(prev_pwm[i] - diff);
+                prev_pwm[i] = prev_pwm[i] - diff;
             }
             
             // printf("DECREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
@@ -76,13 +72,9 @@ void MotorUpdate() {
                 motor.setPWM(prev_pwm[i] + STEP_SIZE); // -diff
                 prev_pwm[i] = prev_pwm[i] + STEP_SIZE; // -diff
             }
-            else if(diff < -STEP_SIZE_MIN) {
-                motor.setPWM(prev_pwm[i] + STEP_SIZE_MIN); // -diff
-                prev_pwm[i] = prev_pwm[i] + STEP_SIZE_MIN; // - diff
-            }
             else {
-                motor.setPWM(prev_pwm[i] + 1);
-                prev_pwm[i] = prev_pwm[i] + 1;
+                motor.setPWM(prev_pwm[i] - diff);
+                prev_pwm[i] = prev_pwm[i] - diff;
             }
             // printf("INCREMENT: Current pwm: %d, Target pwm: %d for motor %d\n", prev_pwm[i], pwm, i);
         }
