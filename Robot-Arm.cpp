@@ -359,9 +359,6 @@ void RobotArm_Task(void *pvParameters) {
         current_angles[3] = pitch * M_PI/180.0f;
         float gripper_angle= 90.0 - (1.8 * curr_position.openness);
         current_angles[4] = gripper_angle * M_PI/180.0f;
-
-        wrist.setAngleDegrees(pitch);
-        gripper.setAngleDegrees(gripper_angle);
         //motor_angles_queue.push(current_angles);
 
         wrist.setAngleDegrees(pitch);
