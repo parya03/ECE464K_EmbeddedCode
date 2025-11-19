@@ -21,13 +21,12 @@
 // #include <queue>
 #include <array>
 
-#define STEP_SIZE 20
-#define STEP_SIZE_MAX 20
-#define STEP_SIZE_MIN 0
-#define STEP_DELTA 5
 
 using JointArray = std::array<double, 5>;
 using JointArrayInt = std::array<int, 5>;
+
+#define STEP_DELTA 5
+#define STEP_SIZE_MIN 0
 
 // Motor angles
 // base arm1 arm2 pitch gripper_angle
@@ -54,8 +53,10 @@ void MotorUpdate() {
     // printf("=======================================\n");
     
     for(int i = 0; i < 3; i++) {
+        printf("==================================");
         Servo& motor = *motors[i];
         int pwm = motor.computePWMRad(current_angles[i]);
+        printf("Staring PWM: %d, TARGET PWM: %d\n", starting_pwm[i], pwm);
         // printf("Joint angle for motor %d: %f\n", i, current_angles[i]);
         int diff = prev_pwm[i] - pwm;
 
@@ -67,45 +68,48 @@ void MotorUpdate() {
 
         int direction = (diff > 0) ? 1 : -1;
         int remaining = std::abs(diff);
+        printf("Remaining:  %d\n", remaining);
         int this_step = step_size[i];
-        int difference = std::abs(pwm - starting_pwm[i]);
+        int difference_half = std::abs(pwm - starting_pwm[i])/2;
+        printf("Difference half:  %d\n", difference_half);
 
-        if(difference >= 100) {
-            // cap if step size is more
-            if(this_step > remaining) {
-                this_step = remaining;
+        if(remaining >= difference_half) {
+
+            if(remaining - difference_half < this_step) {
+                this_step = remaining - difference_half;
             }
-
-            // move one tick
-            prev_pwm[i] += direction * this_step;
-            motor.setPWM(prev_pwm[i]);
 
             // Check if we've reached the target for this motor
             if (prev_pwm[i] == pwm) {
                 converged[i] = true;
                 starting_pwm[i] = pwm;
             }
-
-            // --- Update step size (accel then decel) ---
-            if (step_increasing[i]) {
+            else {
+                prev_pwm[i] += direction * this_step;
+                motor.setPWM(prev_pwm[i]);
                 step_size[i] += STEP_DELTA;
-                if (step_size[i] >= STEP_SIZE_MAX) {
-                    step_size[i] = STEP_SIZE_MAX;
-                    step_increasing[i] = false;   // start decreasing on future calls
-                }
-            } else {
-                step_size[i] -= STEP_DELTA;
-                if (step_size[i] <= STEP_SIZE_MIN) {
-                    step_size[i] = STEP_SIZE_MIN;
-                    step_increasing[i] = true;    // start increasing again
-                }
             }
-        }
-        else if (difference >= 10) {
-                        
-        }
+            printf("Step size: %d\n", step_size[i]);
 
+        }
+        else {
+            if(difference_half - remaining < this_step) {
+                this_step = difference_half - remaining;
+            }
 
+            // Check if we've reached the target for this motor
+            if (prev_pwm[i] == pwm) {
+                converged[i] = true;
+                starting_pwm[i] = pwm;
+            }
+            else {
+                prev_pwm[i] += direction * this_step;
+                motor.setPWM(prev_pwm[i]);
+                step_size[i] -= STEP_DELTA;
+            }
+            printf("Step size: %d\n", step_size[i]);
+
+        }
 
     }
     // check if all motors converged to the desired angles
