@@ -9,6 +9,7 @@
 #include <iostream>
 #include "Communication.hpp"
 #include "Motor-Controller.hpp"
+#include "queue.h"
 
 // #include <iostream>
 
@@ -21,6 +22,7 @@ void vApplicationMallocFailedHook(void) {
     }
 }
 
+// if you change this, change dt in Motor-Controller.hpp to this frequency
 #define MOTOR_CTRL_PERIOD_MS 10   // ms
 
 extern void RobotArm_Task(void *pvParameters);
@@ -51,11 +53,11 @@ void MotorControl_Task(void *pvParameters) {
 int main() {
     // TaskHandle_tArm_Control_Task;
     // static StackType_t Arm_Control_stack[ configMINIMAL_STACK_SIZE ];
-    
     stdio_init_all();
     // while(1) {
     //     printf("Works yippee!\n");
     // }
+
     xTaskCreate(RobotArm_Task, "RobotArm-Task", 10240, NULL, 1, &RobotArm_Task_handle);
     vTaskCoreAffinitySet(RobotArm_Task_handle, 0x2); // Run this on second core exclusively
     xTaskCreate(Decode_Task, "Decode-Task", 10240, NULL, 1, &Decode_Task_handle);

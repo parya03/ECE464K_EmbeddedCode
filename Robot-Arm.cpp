@@ -25,12 +25,9 @@
 using namespace std;
 using namespace Eigen;
 
-using JointArray = std::array<double, 5>;
+double current_angles[5];
 
-// Motor angles
-// base arm1 arm2 pitch gripper_angle
-JointArray current_angles;
-// std::queue<JointArray> motor_angles_queue;
+#define NO_DEBUG 0
 
 /* TODOs
  * Make error take new position into account
@@ -106,7 +103,10 @@ Servo wrist(5, 0);
 Servo gripper(6, 0);  
 
 void RobotArm_Task(void *pvParameters) {
-    printf("Robot Arm task started\n");
+
+    #if NO_DEBUG
+        printf("Robot Arm task started\n");
+    #endif
 
     base.startPWMControllers();
     arm1.startPWMControllers();
@@ -145,8 +145,9 @@ void RobotArm_Task(void *pvParameters) {
     // Q_prev.setRandom(R->dof, 1);
     // Q_prev.setRandom();
     // Q_prev << 3.6, -1.6, 3.14; // Give a bad initial guess for testing
-
-    printf("PWM started\n");
+    #if NO_DEBUG
+        printf("PWM started\n");
+    #endif
 
     while(1) {
         // Initilize variables
@@ -178,11 +179,13 @@ void RobotArm_Task(void *pvParameters) {
         // Q0 = Q_prev;
         // Q0.setZero();
 
+        #if NO_DEBUG
         printf("Q0 - %d x %d:\n", Q0.rows(), Q0.cols());
         for(int i = 0; i < DOF; i++) {
             printf("%f ", Q0(i));
         }
         printf("\n");
+        #endif
 
         // 25.456 because that would make a right triangle with high on potenuse = 36 (robot length) according to Pythagoras
         // double Tn_xyz[3] = {20.0f, 0.0f, 20.0f};
@@ -215,6 +218,7 @@ void RobotArm_Task(void *pvParameters) {
         // Initial guess:
         // Straight vector from base to point but as joint angles
         // Add a small perturbation or the library will return NaN
+        #if NO_DEBUG
         printf("Tn_norm: %f, %f, %f\n", Tn_norm[0], Tn_norm[1], Tn_norm[2]);
         // Q0(0) = atan2(Tn_norm[1], Tn_norm[0]) + 0.01; // ∠ base = atan(y length / x length)
         // Q0(1) = atan2(Tn_norm[2], sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1]))) + 0.01; // ∠ arm1 = atan(z / len(x + y vectors))
@@ -222,6 +226,7 @@ void RobotArm_Task(void *pvParameters) {
         // R->print();
 
         printf("Q0: %f %f %f, sqrt is %f\n", Q0(0), Q0(1), Q0(2), sqrt(SQUARE(Tn_norm[0]) + SQUARE(Tn_norm[1])));
+        #endif
         
         // sleep_ms(1000);
         
@@ -273,12 +278,13 @@ void RobotArm_Task(void *pvParameters) {
             BREAKREASON_GRAD_FAILS // Gradient failed to improve
             };
          **/
-
+        #if NO_DEBUG
         printf("Break reason is:\n");
         for (const auto& reason : breakReason) {
             printf("%d ", reason);
         }
         printf("\n");
+        #endif
 
         // printf("Number of iterations:\n");
         // for (const auto& iter_i : iter) {
@@ -288,7 +294,7 @@ void RobotArm_Task(void *pvParameters) {
         
         // printf("IK finished!\n");
 
-        
+        #if NO_DEBUG
         printf("Commanded transform (Tn):\n");
         for (int i = 0; i < Tn.rows(); i++) {
             for (int j = 0; j < Tn.cols(); j++) {
@@ -296,6 +302,7 @@ void RobotArm_Task(void *pvParameters) {
             }
             printf("\n");
         }
+        #endif
 
         // Matrix4d T_fk;
         // R->FKn(Q_star.col(0), T_fk);
@@ -312,8 +319,9 @@ void RobotArm_Task(void *pvParameters) {
         // }
         // normed_error = (Tn(0, 3) * Q_star(0, 0))
         // printf("Final normed error for this run is: %8f, min recorded is %8f", sqrtf(normed_error), min_sqrt_normed_err);
-
+        #if NO_DEBUG
         printf("Final normed error for this run is: %8f\n", sqrtf(e_star.col(0).norm()));
+        #endif
         // printf("\n");
 
         
@@ -328,11 +336,13 @@ void RobotArm_Task(void *pvParameters) {
         //     printf("\n");
         // }
 
+        #if NO_DEBUG
         printf("Best joint angles so far:\n");
         for(auto i : Q_star.col(0)) {
             printf("%f \n", i);
         }
         printf("\n");
+        
         //
         // R->FKn(min_err_joint_angles, T_fk);
         // printf("FK transformation matrix of best angles (T_fk):\n");
@@ -344,6 +354,7 @@ void RobotArm_Task(void *pvParameters) {
         // }
 
         printf("Total time taken: %d ms\n", endTime - startTime);
+        #endif
 
         // if(sqrtf(normed_error) < min_sqrt_normed_err) {
         //     min_sqrt_normed_err = sqrtf(normed_error);
@@ -387,7 +398,9 @@ void RobotArm_Task(void *pvParameters) {
         Q_prev = Q_star;
         
         if(error) {
+            #if NO_DEBUG
             printf("Could not reach specified joint angles - randomizing initial guess for next run\n");
+            #endif
 
             Q_prev.setRandom();
         }
